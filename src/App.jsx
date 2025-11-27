@@ -6,10 +6,8 @@ import {
   Sun, 
   Flame, 
   Moon, 
-  Headphones, 
   X,
   ExternalLink,
-  Disc,
   Sparkles,
   Loader2,
   Brain,
@@ -20,7 +18,7 @@ import {
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, updateDoc, increment, setDoc, getDoc, collection } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, increment, setDoc } from 'firebase/firestore';
 
 // --- Configuration & Data ---
 
@@ -298,7 +296,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null); 
   const [user, setUser] = useState(null);
-  const [globalCount, setGlobalCount] = useState(2000); // Default start
+  const [globalCount, setGlobalCount] = useState(null); // Init to null to show loading state
 
   // --- Firebase Auth & Stats Listener ---
   useEffect(() => {
@@ -317,9 +315,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     
-    // FIX: Using 6 segments (even number) for a Document Reference
-    // Collection: artifacts/{appId}/public/data/stats (this is a collection path)
-    // Document: artifacts/{appId}/public/data/stats/global_counts (this is a document path)
+    // Correct Path: 6 segments
     const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
     
     const unsubStats = onSnapshot(statsRef, (docSnap) => {
@@ -328,6 +324,8 @@ export default function App() {
         if (data && typeof data.generations === 'number') {
           setGlobalCount(data.generations);
         }
+      } else {
+        setGlobalCount(0); // If doc doesn't exist yet, start at 0
       }
     }, (error) => {
         console.error("Error listening to stats:", error);
@@ -353,7 +351,6 @@ export default function App() {
     
     // --- 1. Increment Global Counter in Firebase ---
     if (user) {
-        // FIX: Using 6 segments here too
         const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
         try {
             await setDoc(statsRef, { generations: increment(1) }, { merge: true });
@@ -511,7 +508,11 @@ export default function App() {
                     <Activity size={12} className="animate-pulse" /> Global Moods Mixed
                  </div>
                  <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    +{globalCount.toLocaleString()}
+                    {globalCount === null ? (
+                      <span className="animate-pulse">---</span>
+                    ) : (
+                      `+${globalCount.toLocaleString()}`
+                    )}
                 </div>
             </div>
         </div>
