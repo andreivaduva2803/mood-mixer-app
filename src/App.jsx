@@ -292,40 +292,18 @@ const ResultCard = ({ results, onReset }) => {
             return (
               <div
                 key={idx}
-                className="relative w-full max-w-[320px] md:w-[340px] aspect-[2/3] md:aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl transition-all duration-300 hover:scale-105"
+                className="relative w-full max-w-[320px] md:w-[340px] rounded-2xl shadow-2xl transition-all duration-300 hover:scale-105"
               >
-                {/* Cover Image */}
-                <div className="absolute inset-0 w-full h-full">
-                  <img
-                    src={`https://picsum.photos/seed/${playlist.spotify_id}/500/500`}
-                    alt={playlist.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30"></div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                </div>
-
-                {/* Content Overlay */}
-                <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 flex flex-col gap-3">
-                  <p className="text-xs font-mono text-lime-400 uppercase tracking-widest">
-                    {playlist.analysis.split(' ')[0]} Protocol
-                  </p>
-                  <h3 className="text-2xl md:text-3xl font-serif text-white leading-tight">
-                    {playlist.title}
-                  </h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2">
-                    {playlist.desc}
-                  </p>
-                  <a
-                    href={playlist.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-2 text-sm text-lime-400 hover:text-white transition-colors flex items-center gap-2"
-                  >
-                    Listen on Spotify <ExternalLink size={14} />
-                  </a>
-                </div>
+                <iframe
+                  style={{ borderRadius: '12px' }}
+                  src={`https://open.spotify.com/embed/playlist/${playlist.spotify_id}?utm_source=generator`}
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allowFullScreen=""
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                ></iframe>
               </div>
             );
           })}
