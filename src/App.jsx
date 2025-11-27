@@ -443,8 +443,8 @@ export default function App() {
             </div>
             
             <div className="hidden lg:block absolute bottom-12 left-12">
-                 <div className="text-6xl font-light text-zinc-800 select-none">
-                    +2K
+                 <div className="text-4xl font-light text-zinc-800 select-none">
+                    Created with love by Badu
                 </div>
             </div>
         </div>
