@@ -246,7 +246,7 @@ const ResultCard = ({ results, onReset }) => {
   if (!results) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500 overflow-auto">
       <div className="relative w-full max-w-7xl flex flex-col items-center min-h-[80vh] justify-center">
 
         {/* Header */}
@@ -268,71 +268,55 @@ const ResultCard = ({ results, onReset }) => {
           </h2>
         </div>
 
-        {/* 3D Carousel Container */}
-        <div className="relative w-full flex flex-col md:flex-row items-center justify-center perspective-[2000px] gap-8 md:gap-0">
+        {/* Carousel Container */}
+        <div className="w-full overflow-x-auto overflow-y-hidden flex flex-nowrap gap-6 md:gap-8 snap-x snap-mandatory py-4 px-2 md:px-0 scrollbar-none scroll-smooth touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
           {results.map((playlist, idx) => {
-            const isCenter = idx === 1;
-            const isLeft = idx === 0;
-            const isRight = idx === 2;
-
+            const isCenter = idx === 1; // used for styling larger card
             return (
               <div
                 key={idx}
                 className={`
-                  relative group flex flex-col shrink-0
-                  w-full md:w-[400px] aspect-[3/4]
+                  flex-shrink-0 snap-center relative group flex flex-col
+                  w-full md:w-[380px] aspect-[3/4]
                   rounded-[2rem] overflow-hidden
-                  transition-all duration-700 ease-out
-                  bg-zinc-900 shadow-2xl
-                  ${isCenter ? 'z-30 md:scale-110 md:translate-z-0' : 'z-10 md:scale-90 opacity-60 hover:opacity-100 grayscale hover:grayscale-0'}
-                  ${isLeft ? 'md:-rotate-y-25 md:origin-right md:-mr-20' : ''}
-                  ${isRight ? 'md:rotate-y-25 md:origin-left md:-ml-20' : ''}
-                  animate-in slide-in-from-bottom-20 fade-in fill-mode-backwards
+                  bg-zinc-900 shadow-2xl transition-transform duration-500 ease-out
+                  ${isCenter ? 'scale-110 z-20 border-lime-500/30' : 'scale-100 opacity-80 hover:opacity-100'}
                 `}
-                style={{
-                  animationDelay: `${idx * 150}ms`,
-                  transformStyle: 'preserve-3d'
-                }}
+                style={{ animationDelay: `${idx * 150}ms` }}
               >
                 {/* Full Background Image */}
                 <div className="absolute inset-0 w-full h-full">
                   <img
                     src={playlist.cover}
                     alt={playlist.title}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
                 </div>
 
                 {/* Content Overlay */}
-                <div className="absolute bottom-0 left-0 w-full p-8 flex flex-col gap-4 transform translate-z-10">
-                  <div className="space-y-2">
-                    <p className="text-xs font-mono text-lime-400 uppercase tracking-widest">
-                      {playlist.analysis.split(' ')[0]} Protocol
-                    </p>
-                    <h3 className="text-3xl font-serif text-white leading-none">
-                      {playlist.title}
-                    </h3>
-                  </div>
-
-                  <p className={`text-zinc-400 text-sm leading-relaxed line-clamp-2 transition-opacity duration-500 ${isCenter ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col gap-3">
+                  <p className="text-xs font-mono text-lime-400 uppercase tracking-widest">
+                    {playlist.analysis.split(' ')[0]} Protocol
+                  </p>
+                  <h3 className="text-2xl md:text-3xl font-serif text-white leading-tight">
+                    {playlist.title}
+                  </h3>
+                  <p className="text-zinc-400 text-sm line-clamp-2">
                     {playlist.desc}
                   </p>
-
-                  <div className="pt-4 flex items-center justify-between border-t border-white/10">
-                    <a
-                      href={playlist.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-white text-sm hover:text-lime-400 transition-colors flex items-center gap-2"
-                    >
-                      Listen on Spotify <ExternalLink size={14} />
-                    </a>
-                  </div>
+                  <a
+                    href={playlist.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 text-sm text-lime-400 hover:text-white transition-colors flex items-center gap-1"
+                  >
+                    Listen on Spotify <ExternalLink size={14} />
+                  </a>
                 </div>
               </div>
             );
@@ -442,6 +426,13 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#050505] overflow-hidden font-sans text-white selection:bg-lime-500/30 selection:text-lime-200 flex flex-col">
       <SpeedInsights />
+      {/* Header (shared with Result view) */}
+      <div className="absolute top-0 left-0 w-full flex justify-between items-center p-6 md:p-12 z-50">
+        <div className="flex items-center gap-3">
+          <span className="text-xl md:text-2xl font-bold text-white tracking-tight">MoodMixer</span>
+          <div className="h-px w-12 bg-white/20"></div>
+        </div>
+      </div>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
         html, body, #root { width: 100%; min-height: 100vh; margin: 0; padding: 0; max-width: none !important; overflow-x: hidden; }
