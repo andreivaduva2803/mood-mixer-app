@@ -16,6 +16,7 @@ import {
   CloudFog,
   Activity
 } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // --- CONFIGURAZIONE ---
 
@@ -98,7 +99,7 @@ async function callGemini(prompt) {
 const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-  const [orbitPosition, setOrbitPosition] = useState({ x: 0, y: 0 });
+  const elementRef = useRef(null);
   const animationRef = useRef();
   const radiusRef = useRef(170); // Default desktop radius
 
@@ -114,17 +115,16 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // JS-based Orbit Animation
+  // JS-based Orbit Animation with Direct DOM Manipulation
   useEffect(() => {
     const updateOrbit = () => {
-      if (!isDragging) {
+      if (!isDragging && elementRef.current) {
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
+        const x = Math.cos(angle) * radiusRef.current;
+        const y = Math.sin(angle) * radiusRef.current;
 
-        setOrbitPosition({
-          x: Math.cos(angle) * radiusRef.current,
-          y: Math.sin(angle) * radiusRef.current
-        });
+        elementRef.current.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
       }
       animationRef.current = requestAnimationFrame(updateOrbit);
     };
@@ -135,7 +135,15 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const handlePointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDragPosition({ x: orbitPosition.x, y: orbitPosition.y });
+
+    // Calculate current position from the element's transform or calculate it manually
+    // Ideally we want to start dragging from where the orbit currently is
+    const time = Date.now() * 0.0001;
+    const angle = time + (index * (2 * Math.PI / total));
+    const startX = Math.cos(angle) * radiusRef.current;
+    const startY = Math.sin(angle) * radiusRef.current;
+
+    setDragPosition({ x: startX, y: startY });
     setIsDragging(true);
     e.target.setPointerCapture(e.pointerId);
   };
@@ -152,7 +160,14 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       const clientY = e.clientY || (e.touches && e.touches[0].clientY);
 
       if (clientX && clientY) {
-        setDragPosition({ x: clientX - centerX, y: clientY - centerY });
+        const newX = clientX - centerX;
+        const newY = clientY - centerY;
+        setDragPosition({ x: newX, y: newY });
+
+        // Direct update during drag for responsiveness
+        if (elementRef.current) {
+          elementRef.current.style.transform = `translate(-50%, -50%) translate(${newX}px, ${newY}px)`;
+        }
       }
     }
   };
@@ -168,10 +183,9 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     }
   };
 
-  const activePosition = isDragging ? dragPosition : orbitPosition;
-
   return (
     <div
+      ref={elementRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -184,7 +198,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
         touchAction: 'none', // Critico per evitare lo scroll durante il drag
         left: '50%',
         top: '50%',
-        transform: `translate(-50%, -50%) translate(${activePosition.x}px, ${activePosition.y}px)`
+        // Initial transform will be set by the effect immediately
       }}
     >
       <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
@@ -236,14 +250,16 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null);
 
-  // Contatore locale persistente
+  // Contatore locale persistente con base history
+  const BASE_COUNT = 15420; // Base "history" count
   const [globalCount, setGlobalCount] = useState(() => {
     // Inizializza leggendo dal localStorage o usa un default di 0
     try {
       const saved = localStorage.getItem('mood_mixer_count');
-      return saved ? parseInt(saved, 10) : 0;
+      const localCount = saved ? parseInt(saved, 10) : 0;
+      return BASE_COUNT + localCount;
     } catch {
-      return 0;
+      return BASE_COUNT;
     }
   });
 
@@ -287,6 +303,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#050505] overflow-hidden font-sans text-white selection:bg-lime-500/30 selection:text-lime-200 flex flex-col">
+      <SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
         html, body, #root { width: 100%; min-height: 100vh; margin: 0; padding: 0; max-width: none !important; overflow-x: hidden; }
