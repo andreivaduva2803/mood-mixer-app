@@ -284,12 +284,9 @@ const ResultCard = ({ results, onReset }) => {
         {/* Carousel Container */}
         <div
           ref={carouselRef}
-          className="flex-1 w-full overflow-x-auto overflow-y-hidden flex items-center gap-4 md:gap-6 px-4 md:px-8 snap-x snap-mandatory scrollbar-none scroll-smooth"
+          className="flex-1 w-full overflow-y-auto md:overflow-y-hidden md:overflow-x-auto flex flex-col md:flex-row items-center justify-center gap-6 md:gap-6 px-4 md:px-8 snap-y md:snap-x snap-mandatory scrollbar-none scroll-smooth"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          {/* Spacer for centering first card on mobile */}
-          <div className="flex-shrink-0 w-[calc(50vw-180px)] md:w-[calc(50vw-240px)]"></div>
-
           {results.map((playlist, idx) => {
             const isSelected = idx === selectedIndex;
             return (
@@ -298,7 +295,7 @@ const ResultCard = ({ results, onReset }) => {
                 onClick={() => scrollToCard(idx)}
                 className={`
                   flex-shrink-0 snap-center relative group flex flex-col cursor-pointer
-                  w-[320px] md:w-[420px] aspect-[3/4]
+                  w-full max-w-[400px] md:w-[420px] aspect-[3/4]
                   rounded-[2rem] overflow-hidden
                   bg-zinc-900 shadow-2xl transition-all duration-500 ease-out
                   ${isSelected ? 'scale-100 md:scale-110 opacity-100 ring-2 ring-lime-500/50' : 'scale-90 md:scale-95 opacity-60 hover:opacity-80 hover:scale-95 md:hover:scale-100'}
@@ -342,9 +339,6 @@ const ResultCard = ({ results, onReset }) => {
               </div>
             );
           })}
-
-          {/* Spacer for centering last card on mobile */}
-          <div className="flex-shrink-0 w-[calc(50vw-180px)] md:w-[calc(50vw-240px)]"></div>
         </div>
 
         {/* Navigation Dots */}
@@ -397,21 +391,43 @@ export default function App() {
   const generateLocalPlaylists = (moods) => {
     // Collect all possible playlists from selected moods
     let pool = [];
+    const usedTitles = new Set();
+
     moods.forEach(m => {
       if (MOOD_PLAYLISTS[m.id]) {
-        pool = [...pool, ...MOOD_PLAYLISTS[m.id]];
+        MOOD_PLAYLISTS[m.id].forEach(playlist => {
+          // Only add if we haven't used this title yet
+          if (!usedTitles.has(playlist.title)) {
+            pool.push(playlist);
+            usedTitles.add(playlist.title);
+          }
+        });
       }
     });
 
     // If no specific playlists found or pool is empty, use fallback/random logic
     if (pool.length === 0) {
-      // Fallback to 'chill' if nothing else
       pool = MOOD_PLAYLISTS['chill'];
     }
 
-    // Shuffle and pick 3 unique
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 3);
+    // Fisher-Yates shuffle for better randomization
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // Pick 3 unique playlists
+    const selected = shuffled.slice(0, Math.min(3, shuffled.length));
+
+    // If we don't have 3, pad with random ones from the pool
+    while (selected.length < 3 && pool.length > 0) {
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      const candidate = pool[randomIndex];
+      if (!selected.find(s => s.title === candidate.title)) {
+        selected.push(candidate);
+      }
+    }
 
     return selected.map(p => ({
       ...p,
@@ -492,9 +508,10 @@ export default function App() {
           <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
           </div>
           <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">Mood Mixer</h1>
-            <div className="h-px w-16 md:w-24 bg-lime-500"></div>
-            <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">Find the right music for your mood. Discover new playlists based on how you're feeling right now!</p>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight text-white leading-tight">
+              Selected frequencies<br />
+              <span className="text-zinc-500">aligned with your mood</span>
+            </h1>
           </div>
           <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
             <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
