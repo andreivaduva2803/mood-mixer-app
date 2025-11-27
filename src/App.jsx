@@ -244,33 +244,108 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
 const ResultCard = ({ results, onReset }) => {
   if (!results) return null;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-700 overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-[#101010] border border-white/10 p-1 shadow-2xl rounded-2xl my-auto">
-        <div className="relative border border-white/5 rounded-xl h-full p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest relative z-10 border-b border-white/5 pb-4">
-            <span className="flex items-center gap-2"><Sparkles size={12} className="text-lime-500" /> Generated Output</span>
-            <button onClick={onReset} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"><X size={18} /></button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500 overflow-y-auto">
+      <div className="relative w-full max-w-6xl flex flex-col items-center">
+
+        {/* Header */}
+        <div className="w-full flex justify-between items-center mb-8 md:mb-12 px-4">
+          <div className="flex items-center gap-3">
+            <Sparkles size={20} className="text-lime-500 animate-pulse" />
+            <span className="text-sm md:text-base font-mono text-white uppercase tracking-[0.2em]">Sonic Identity Generated</span>
           </div>
-          <div className="space-y-4 relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-            {results.map((playlist, idx) => (
-              <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-lime-500/30 transition-all duration-300">
-                <div className="relative w-full sm:w-20 h-20 shrink-0 overflow-hidden bg-zinc-900 rounded-lg shadow-lg">
-                  <img src={playlist.cover} alt={playlist.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" />
+          <button onClick={onReset} className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+            <span className="text-xs font-mono text-zinc-400 group-hover:text-white">CLOSE</span>
+            <X size={16} className="text-zinc-400 group-hover:text-white" />
+          </button>
+        </div>
+
+        {/* Cards Container */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 w-full perspective-[1000px]">
+          {results.map((playlist, idx) => {
+            const isCenter = idx === 1;
+            return (
+              <div
+                key={idx}
+                className={`
+                  relative group flex flex-col 
+                  ${isCenter ? 'w-full md:w-[420px] z-20 order-first md:order-none' : 'w-full md:w-[320px] z-10 opacity-80 hover:opacity-100'}
+                  bg-[#101010] border border-white/10 rounded-2xl overflow-hidden shadow-2xl
+                  transition-all duration-500 ease-out
+                  ${isCenter ? 'md:scale-110 shadow-[0_0_50px_rgba(163,230,53,0.15)] ring-1 ring-lime-500/30' : 'hover:scale-105 hover:shadow-xl hover:border-white/20'}
+                  animate-in slide-in-from-bottom-10 fade-in fill-mode-backwards
+                `}
+                style={{ animationDelay: `${idx * 150}ms` }}
+              >
+                {/* Cover Image */}
+                <div className={`relative w-full ${isCenter ? 'h-64 md:h-80' : 'h-48 md:h-56'} overflow-hidden bg-zinc-900`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#101010] to-transparent z-10 opacity-60"></div>
+                  <img
+                    src={playlist.cover}
+                    alt={playlist.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60'; // Fallback abstract gradient
+                    }}
+                  />
+
+                  {/* Play Button Overlay */}
+                  <a
+                    href={playlist.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`
+                      absolute bottom-4 right-4 z-20 
+                      flex items-center justify-center 
+                      ${isCenter ? 'w-14 h-14' : 'w-10 h-10'} 
+                      bg-lime-500 text-black rounded-full shadow-lg 
+                      transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 
+                      transition-all duration-300 hover:bg-white hover:scale-110
+                    `}
+                  >
+                    <ExternalLink size={isCenter ? 24 : 18} />
+                  </a>
                 </div>
-                <div className="flex-1 flex flex-col justify-between">
-                  <div><h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">{playlist.title}</h3><p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">{playlist.desc}</p></div>
-                  <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-end">
-                    <span className="text-[9px] text-zinc-500 font-mono">{playlist.analysis.substring(0, 30)}...</span>
-                    <a href={playlist.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"><ExternalLink size={14} /></a>
+
+                {/* Content */}
+                <div className={`flex flex-col ${isCenter ? 'p-6 md:p-8' : 'p-5'} gap-3`}>
+                  <div className="flex flex-col gap-1">
+                    <h3 className={`font-bold text-white leading-tight ${isCenter ? 'text-2xl md:text-3xl' : 'text-xl'}`}>
+                      {playlist.title}
+                    </h3>
+                    <p className="text-xs font-mono text-lime-500/80 uppercase tracking-wider">
+                      {playlist.analysis.split(' ')[0]} Protocol
+                    </p>
+                  </div>
+
+                  <p className={`text-zinc-400 font-light leading-relaxed ${isCenter ? 'text-sm md:text-base line-clamp-3' : 'text-xs md:text-sm line-clamp-2'}`}>
+                    {playlist.desc}
+                  </p>
+
+                  <div className={`mt-2 pt-4 border-t border-white/5 flex items-center justify-between`}>
+                    <span className="text-[10px] text-zinc-600 font-mono uppercase tracking-widest">
+                      Match: {90 + (idx * 3)}%
+                    </span>
+                    <div className="flex gap-1">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className={`w-1 h-1 rounded-full ${i < 2 ? 'bg-lime-500' : 'bg-zinc-800'}`}></div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="pt-2 text-center relative z-10"><span className="text-[9px] text-zinc-600 font-mono uppercase">Select a stream to initiate</span></div>
+            );
+          })}
         </div>
+
+        <div className="mt-12 text-center animate-in fade-in delay-700 duration-1000">
+          <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em]">
+            Select a frequency to synchronize
+          </p>
+        </div>
+
       </div>
     </div>
   );
