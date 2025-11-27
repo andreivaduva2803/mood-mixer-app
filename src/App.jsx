@@ -140,7 +140,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const handleResize = () => {
       // Raggio più piccolo su schermi stretti per evitare overflow
-      radiusRef.current = window.innerWidth < 768 ? 110 : 170;
+      radiusRef.current = window.innerWidth < 768 ? 150 : 170;
     };
 
     handleResize(); // Set initial
@@ -274,7 +274,7 @@ const ResultCard = ({ results, onReset }) => {
             return (
               <div
                 key={idx}
-                className="relative w-full max-w-[320px] md:w-[340px] aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl transition-all duration-300 hover:scale-105"
+                className="relative w-full max-w-[320px] md:w-[340px] aspect-[2/3] md:aspect-[3/4] rounded-2xl overflow-hidden bg-zinc-900 shadow-2xl transition-all duration-300 hover:scale-105"
               >
                 {/* Cover Image */}
                 <div className="absolute inset-0 w-full h-full">
@@ -283,6 +283,7 @@ const ResultCard = ({ results, onReset }) => {
                     alt={playlist.title}
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-black/30"></div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                 </div>
 
@@ -487,13 +488,13 @@ export default function App() {
             <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
             <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
             <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
-            <div className="relative w-40 h-40 lg:w-48 lg:h-48 flex items-center justify-center">
+            <div className="relative w-64 h-64 lg:w-48 lg:h-48 flex items-center justify-center">
               <div className="relative z-10">
                 {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
               </div>
             </div>
             {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
-            <div className="absolute -bottom-20 lg:-bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
+            <div className="absolute -bottom-32 lg:-bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
               {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
             </div>
           </div>
