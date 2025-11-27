@@ -279,7 +279,7 @@ const ResultCard = ({ results, onReset }) => {
                 {/* Cover Image */}
                 <div className="absolute inset-0 w-full h-full">
                   <img
-                    src={`https://source.unsplash.com/500x500/?${encodeURIComponent(playlist.image_keyword)}&sig=${playlist.spotify_id}`}
+                    src={`https://picsum.photos/seed/${playlist.spotify_id}/500/500`}
                     alt={playlist.title}
                     className="w-full h-full object-cover"
                   />
