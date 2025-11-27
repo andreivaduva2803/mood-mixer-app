@@ -356,9 +356,21 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#050505] overflow-hidden font-sans text-white selection:bg-lime-500/30 selection:text-lime-200 flex flex-col">
+      {/* This style block forces the app to override standard Create-React-App/Vite
+        defaults which often restrict max-width or add centering margins.
+      */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
         
+        html, body, #root {
+          width: 100%;
+          min-height: 100vh;
+          margin: 0;
+          padding: 0;
+          max-width: none !important;
+          overflow-x: hidden;
+        }
+
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         @keyframes blob {
