@@ -184,9 +184,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
         touchAction: 'none', // Critico per evitare lo scroll durante il drag
         left: '50%',
         top: '50%',
-        marginLeft: '-32px',
-        marginTop: '-32px',
-        transform: `translate(${activePosition.x}px, ${activePosition.y}px)`
+        transform: `translate(-50%, -50%) translate(${activePosition.x}px, ${activePosition.y}px)`
       }}
     >
       <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
