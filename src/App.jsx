@@ -140,7 +140,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const handleResize = () => {
       // Raggio più piccolo su schermi stretti per evitare overflow
-      radiusRef.current = window.innerWidth < 768 ? 150 : 170;
+      radiusRef.current = window.innerWidth < 768 ? 130 : 170;
     };
 
     handleResize(); // Set initial
@@ -296,7 +296,7 @@ const ResultCard = ({ results, onReset }) => {
                 className={`
                   flex-shrink-0 snap-center relative group flex flex-col cursor-pointer
                   w-full max-w-[400px] md:w-[420px] aspect-[3/4]
-                  rounded-[2rem] overflow-hidden
+                  rounded-2xl overflow-hidden
                   bg-zinc-900 shadow-2xl transition-all duration-500 ease-out
                   ${isSelected ? 'scale-100 md:scale-110 opacity-100 ring-2 ring-lime-500/50' : 'scale-90 md:scale-95 opacity-60 hover:opacity-80 hover:scale-95 md:hover:scale-100'}
                 `}
@@ -429,9 +429,9 @@ export default function App() {
       }
     }
 
-    return selected.map(p => ({
+    return selected.map((p, idx) => ({
       ...p,
-      cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`,
+      cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal&sig=${Date.now()}-${idx}`,
       url: `https://open.spotify.com/playlist/${p.spotify_id}`
     }));
   };
@@ -504,10 +504,10 @@ export default function App() {
         <div className="absolute bottom-[10%] left-[30%] w-[600px] h-[600px] bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000"></div>
       </div>
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
-        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
+        <div className="relative flex flex-col justify-center px-6 py-6 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
           <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
           </div>
-          <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
+          <div className="space-y-3 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-8 lg:mt-0 flex flex-col items-center lg:items-start">
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight text-white leading-tight">
               Selected frequencies<br />
               <span className="text-zinc-500">aligned with your mood</span>
@@ -520,7 +520,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0">
+        <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-6 lg:pb-0">
           <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
           </div>
           <div className="relative z-10 animate-in zoom-in duration-1000 scale-100 flex items-center justify-center">
@@ -528,13 +528,13 @@ export default function App() {
             <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
             <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
             <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
-            <div className="relative w-64 h-64 lg:w-48 lg:h-48 flex items-center justify-center">
+            <div className="relative w-48 h-48 lg:w-48 lg:h-48 flex items-center justify-center">
               <div className="relative z-10">
                 {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
               </div>
             </div>
             {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
-            <div className="absolute -bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
+            <div className="absolute -bottom-24 lg:-bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
               {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
             </div>
           </div>
