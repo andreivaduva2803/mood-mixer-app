@@ -15,12 +15,23 @@ import {
   Brain,
   Lightbulb,
   CassetteTape,
-  CloudFog
+  CloudFog,
+  Activity
 } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { getFirestore, doc, onSnapshot, updateDoc, increment, setDoc, getDoc, collection } from 'firebase/firestore';
 
 // --- Configuration & Data ---
 
 const apiKey = ""; // API Key will be injected by the environment
+
+// --- Firebase Init ---
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
 // Define gradients map for referencing in SVG fills
 const GRADIENTS = {
@@ -109,9 +120,8 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging) {
-        // Updated radius logic for better mobile layout
-        // Mobile: 135px (was 110), Desktop: 170px
-        const radius = window.innerWidth < 1024 ? 135 : 170; 
+        // Radius logic responsive
+        const radius = window.innerWidth < 1024 ? 135 : 170; // Smaller on mobile/tablet
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
         
@@ -284,9 +294,48 @@ const ResultCard = ({ results, onReset }) => {
 export default function App() {
   const [selectedMoods, setSelectedMoods] = useState([]);
   const [availableMoods, setAvailableMoods] = useState(MOOD_TYPES);
-  const [results, setResults] = useState(null); // Now stores an array
+  const [results, setResults] = useState(null); 
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null); 
+  const [user, setUser] = useState(null);
+  const [globalCount, setGlobalCount] = useState(2000); // Default start
+
+  // --- Firebase Auth & Stats Listener ---
+  useEffect(() => {
+    const initAuth = async () => {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    // FIX: Using 6 segments (even number) for a Document Reference
+    // Collection: artifacts/{appId}/public/data/stats (this is a collection path)
+    // Document: artifacts/{appId}/public/data/stats/global_counts (this is a document path)
+    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
+    
+    const unsubStats = onSnapshot(statsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data && typeof data.generations === 'number') {
+          setGlobalCount(data.generations);
+        }
+      }
+    }, (error) => {
+        console.error("Error listening to stats:", error);
+    });
+
+    return () => unsubStats();
+  }, [user]);
+
 
   const handleDrop = (mood) => {
     setAvailableMoods(prev => prev.filter(m => m.id !== mood.id));
@@ -301,6 +350,19 @@ export default function App() {
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
+    
+    // --- 1. Increment Global Counter in Firebase ---
+    if (user) {
+        // FIX: Using 6 segments here too
+        const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
+        try {
+            await setDoc(statsRef, { generations: increment(1) }, { merge: true });
+        } catch (e) {
+            console.error("Failed to update stats", e);
+        }
+    }
+
+    // --- 2. Call AI ---
     const moodLabels = selectedMoods.map(m => m.label).join(', ');
     const prompt = `
       You are a high-tech minimalist music curator.
@@ -426,7 +488,7 @@ export default function App() {
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
 
         {/* --- LEFT SECTION: Title & Context --- */}
-        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 text-center lg:text-left">
+        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
             
             <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
@@ -443,15 +505,18 @@ export default function App() {
                 </p>
             </div>
             
-            <div className="hidden lg:block absolute bottom-12 left-12">
-                 <div className="text-6xl font-light text-zinc-800 select-none">
-                    +2K
+            {/* Live Counter (Bottom Left) */}
+            <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
+                 <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono">
+                    <Activity size={12} className="animate-pulse" /> Global Moods Mixed
+                 </div>
+                 <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                    +{globalCount.toLocaleString()}
                 </div>
             </div>
         </div>
 
         {/* --- RIGHT SECTION: The Mixer & Orbit --- */}
-        {/* Added flex-grow to ensure it takes remaining height on mobile */}
         <div 
             ref={rightPanelRef}
             className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0"
@@ -465,7 +530,6 @@ export default function App() {
             </div>
 
             {/* The Core Container */}
-            {/* Scale restored to 100% on mobile for usability, still 100% on desktop */}
             <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
                  {/* --- CONCENTRIC RINGS (Tighter) --- */}
                 <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
