@@ -16,22 +16,48 @@ import {
   CloudFog,
   Activity
 } from 'lucide-react';
+// Importiamo le funzioni di Firebase
+// Nota: Se non hai un progetto Firebase, il contatore globale non funzionerà, ma il sito non crasherà.
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, increment, setDoc } from 'firebase/firestore';
 
-// --- Configuration & Data ---
+// --- CONFIGURAZIONE ---
 
-const apiKey = ""; // API Key will be injected by the environment
+const apiKey = "YOUR_GEMINI_API_KEY_HERE"; // <--- INSERISCI QUI LA TUA CHIAVE GEMINI
 
-// --- Firebase Init ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// --- CONFIGURAZIONE FIREBASE ---
+// Per far funzionare il contatore globale su Netlify, devi creare un progetto su firebase.google.com
+// e incollare qui sotto i dati che ti danno.
+// Se lasci questo oggetto vuoto o finto, il contatore rimarrà a 0.
+const firebaseConfig = {
+  apiKey: "API_KEY_FIREBASE",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  projectId: "PROJECT_ID",
+  storageBucket: "PROJECT_ID.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
 
-// Define gradients map for referencing in SVG fills
+// Inizializzazione sicura di Firebase
+let app, auth, db;
+try {
+  // Controlliamo se la config è valida prima di inizializzare
+  if (firebaseConfig.projectId !== "PROJECT_ID") {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+  } else {
+      console.warn("Firebase non configurato. Il contatore globale non funzionerà.");
+  }
+} catch (e) {
+  console.error("Errore init Firebase:", e);
+}
+
+const appId = "mood-mixer-v1";
+
+// --- DATI ---
+
 const GRADIENTS = {
   lime: { id: 'grad-lime', start: '#a3e635', end: '#4d7c0f' },
   white: { id: 'grad-white', start: '#ffffff', end: '#94a3b8' },
@@ -79,23 +105,20 @@ const FALLBACK_PLAYLISTS = [
   }
 ];
 
-// --- API Logic ---
-
 async function callGemini(prompt) {
+  if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
+      console.warn("API Key mancante.");
+      return null;
+  }
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
     );
-
     if (!response.ok) throw new Error('Network response was not ok');
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -105,7 +128,7 @@ async function callGemini(prompt) {
   }
 }
 
-// --- Components ---
+// --- Componenti ---
 
 const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -114,23 +137,16 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const animationRef = useRef();
   const elementRef = useRef(null);
 
-  // JS-based Orbit Animation
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging) {
-        // Radius logic responsive
-        const radius = window.innerWidth < 1024 ? 135 : 170; // Smaller on mobile/tablet
+        const radius = window.innerWidth < 1024 ? 135 : 170;
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
-        
-        setOrbitPosition({
-          x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius
-        });
+        setOrbitPosition({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
       }
       animationRef.current = requestAnimationFrame(updateOrbit);
     };
-
     animationRef.current = requestAnimationFrame(updateOrbit);
     return () => cancelAnimationFrame(animationRef.current);
   }, [index, total, isDragging]);
@@ -157,11 +173,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     if (!isDragging) return;
     setIsDragging(false);
     e.target.releasePointerCapture(e.pointerId);
-    
-    const distance = Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2);
-    if (distance < 120) { 
-      onDrop(mood);
-    } 
+    if (Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2) < 120) onDrop(mood);
   };
 
   const activePosition = isDragging ? dragPosition : orbitPosition;
@@ -172,39 +184,12 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      className={`
-        absolute flex flex-col items-center justify-center 
-        w-12 h-12 md:w-16 md:h-16 rounded-full
-        backdrop-blur-sm bg-white/5 border border-white/10
-        cursor-grab active:cursor-grabbing
-        shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]
-        ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}
-      `}
-      style={{
-        touchAction: 'none',
-        left: '50%',
-        top: '50%',
-        marginLeft: '-32px', // Approx centered (adjusts via JS anyway)
-        marginTop: '-32px',   
-        transform: `translate(${activePosition.x}px, ${activePosition.y}px)`,
-      }}
+      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}`}
+      style={{ touchAction: 'none', left: '50%', top: '50%', marginLeft: '-32px', marginTop: '-32px', transform: `translate(${activePosition.x}px, ${activePosition.y}px)` }}
     >
         <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
-            <mood.icon 
-                className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} 
-                strokeWidth={1.5} 
-                fill={`url(#${mood.gradId})`}
-                fillOpacity="0.4"
-            />
-            
-            <span className={`
-                absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 
-                bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md
-                opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                ${isDragging ? 'opacity-100' : ''}
-            `}>
-                {mood.label}
-            </span>
+            <mood.icon className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
+            <span className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isDragging ? 'opacity-100' : ''}`}>{mood.label}</span>
         </div>
     </div>
   );
@@ -212,77 +197,32 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
 const ResultCard = ({ results, onReset }) => {
   if (!results) return null;
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-700 overflow-y-auto">
       <div className="relative w-full max-w-lg bg-[#101010] border border-white/10 p-1 shadow-2xl rounded-2xl my-auto">
         <div className="relative border border-white/5 rounded-xl h-full p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
-            
-            {/* Ambient Card Background */}
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
             <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest relative z-10 border-b border-white/5 pb-4">
-                <span className="flex items-center gap-2">
-                    <Sparkles size={12} className="text-lime-500"/> 
-                    Generated Output
-                </span>
-                <button 
-                    onClick={onReset}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                >
-                    <X size={18} />
-                </button>
+                <span className="flex items-center gap-2"><Sparkles size={12} className="text-lime-500"/> Generated Output</span>
+                <button onClick={onReset} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"><X size={18} /></button>
             </div>
-            
-            {/* Scrollable list of 3 playlists */}
             <div className="space-y-4 relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                 {results.map((playlist, idx) => (
                     <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-lime-500/30 transition-all duration-300">
-                        {/* Cover */}
                         <div className="relative w-full sm:w-20 h-20 shrink-0 overflow-hidden bg-zinc-900 rounded-lg shadow-lg">
-                            <img 
-                                src={playlist.cover} 
-                                alt={playlist.title} 
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
-                            />
+                            <img src={playlist.cover} alt={playlist.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" />
                         </div>
-
-                        {/* Info */}
                         <div className="flex-1 flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">
-                                    {playlist.title}
-                                </h3>
-                                <p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">
-                                    {playlist.desc}
-                                </p>
-                            </div>
-                            
-                            {/* Analysis snippet */}
+                            <div><h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">{playlist.title}</h3><p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">{playlist.desc}</p></div>
                             <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-end">
-                                <span className="text-[9px] text-zinc-500 font-mono">
-                                    {playlist.analysis.substring(0, 30)}...
-                                </span>
-                                <a 
-                                    href={playlist.url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"
-                                >
-                                    <ExternalLink size={14} />
-                                </a>
+                                <span className="text-[9px] text-zinc-500 font-mono">{playlist.analysis.substring(0, 30)}...</span>
+                                <a href={playlist.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"><ExternalLink size={14} /></a>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-
-            <div className="pt-2 text-center relative z-10">
-                <span className="text-[9px] text-zinc-600 font-mono uppercase">
-                    Select a stream to initiate
-                </span>
-            </div>
-
+            <div className="pt-2 text-center relative z-10"><span className="text-[9px] text-zinc-600 font-mono uppercase">Select a stream to initiate</span></div>
         </div>
       </div>
     </div>
@@ -296,44 +236,27 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null); 
   const [user, setUser] = useState(null);
-  const [globalCount, setGlobalCount] = useState(null); // Init to null to show loading state
+  const [globalCount, setGlobalCount] = useState(0); 
 
-  // --- Firebase Auth & Stats Listener ---
   useEffect(() => {
-    const initAuth = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
+    if (!auth) return; 
+    const initAuth = async () => { await signInAnonymously(auth).catch(e => console.error(e)); };
     initAuth();
     const unsubscribe = onAuthStateChanged(auth, setUser);
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (!user) return;
-    
-    // Correct Path: 6 segments
+    if (!user || !db) return;
     const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
-    
     const unsubStats = onSnapshot(statsRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data && typeof data.generations === 'number') {
-          setGlobalCount(data.generations);
-        }
-      } else {
-        setGlobalCount(0); // If doc doesn't exist yet, start at 0
+        if (data && typeof data.generations === 'number') setGlobalCount(data.generations);
       }
-    }, (error) => {
-        console.error("Error listening to stats:", error);
-    });
-
+    }, (error) => console.error("Stats error:", error));
     return () => unsubStats();
   }, [user]);
-
 
   const handleDrop = (mood) => {
     setAvailableMoods(prev => prev.filter(m => m.id !== mood.id));
@@ -348,63 +271,20 @@ export default function App() {
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-    
-    // --- 1. Increment Global Counter in Firebase ---
-    if (user) {
+    if (user && db) {
         const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
-        try {
-            await setDoc(statsRef, { generations: increment(1) }, { merge: true });
-        } catch (e) {
-            console.error("Failed to update stats", e);
-        }
+        try { await setDoc(statsRef, { generations: increment(1) }, { merge: true }); } catch (e) { console.error("Stats update failed", e); }
     }
-
-    // --- 2. Call AI ---
     const moodLabels = selectedMoods.map(m => m.label).join(', ');
-    const prompt = `
-      You are a high-tech minimalist music curator.
-      User Input: [${moodLabels}].
-      
-      Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations based on these moods.
-      Each playlist should explore a slightly different facet of the mood combination (e.g., one rhythmic, one ambient, one lyrical).
-
-      Structure:
-      {
-        "playlists": [
-            {
-                "title": "Minimal Title (Max 3 words)",
-                "desc": "Direct, technical description.",
-                "analysis": "Short sci-fi observation.",
-                "spotify_query": "Search query for Spotify",
-                "image_keyword": "Abstract minimal dark tech"
-            },
-            ... (2 more)
-        ]
-      }
-    `;
-
+    const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
     const jsonString = await callGemini(prompt);
-    
     if (jsonString) {
       try {
         const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
         const data = JSON.parse(cleanedJson);
-        
-        // Map the results to add covers and urls
-        const processedResults = data.playlists.map(p => ({
-            ...p,
-            cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`,
-            url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}`
-        }));
-
-        setResults(processedResults);
-      } catch (e) {
-        console.error("Failed to parse AI response", e);
-        setResults(FALLBACK_PLAYLISTS);
-      }
-    } else {
-      setResults(FALLBACK_PLAYLISTS);
-    }
+        setResults(data.playlists.map(p => ({ ...p, cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`, url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}` })));
+      } catch (e) { setResults(FALLBACK_PLAYLISTS); }
+    } else { setResults(FALLBACK_PLAYLISTS); }
     setLoading(false);
   };
 
@@ -416,201 +296,66 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#050505] overflow-hidden font-sans text-white selection:bg-lime-500/30 selection:text-lime-200 flex flex-col">
-      {/* This style block forces the app to override standard Create-React-App/Vite
-        defaults which often restrict max-width or add centering margins.
-      */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-        
-        html, body, #root {
-          width: 100%;
-          min-height: 100vh;
-          margin: 0;
-          padding: 0;
-          max-width: none !important;
-          overflow-x: hidden;
-        }
-
+        html, body, #root { width: 100%; min-height: 100vh; margin: 0; padding: 0; max-width: none !important; overflow-x: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        /* Custom Scrollbar for results */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(163, 230, 53, 0.5);
-          border-radius: 4px;
-        }
+        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(163, 230, 53, 0.5); border-radius: 4px; }
       `}</style>
-      
-      {/* --- SVG DEFS for Gradients --- */}
-      <svg width="0" height="0" className="absolute">
-        <defs>
-          {Object.values(GRADIENTS).map(g => (
-            <linearGradient key={g.id} id={g.id} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={g.start} stopOpacity="1" />
-              <stop offset="100%" stopColor={g.end} stopOpacity="1" />
-            </linearGradient>
-          ))}
-        </defs>
-      </svg>
-
-      {/* --- Ambient Living Background --- */}
+      <svg width="0" height="0" className="absolute"><defs>{Object.values(GRADIENTS).map(g => (<linearGradient key={g.id} id={g.id} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor={g.start} stopOpacity="1" /><stop offset="100%" stopColor={g.end} stopOpacity="1" /></linearGradient>))}</defs></svg>
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-purple-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
         <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-lime-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-[10%] left-[30%] w-[600px] h-[600px] bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000"></div>
       </div>
-
-      {/* --- Main Layout Grid (Responsive) --- */}
-      {/* Changed from grid-cols-2 to flex-col on mobile, grid on large screens */}
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
-
-        {/* --- LEFT SECTION: Title & Context --- */}
         <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
-            
             <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
                 <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
             </div>
-
             <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">
-                    Mood Mixer
-                </h1>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">Mood Mixer</h1>
                 <div className="h-px w-16 md:w-24 bg-lime-500"></div>
-                <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
-                    Find the right music for your mood. Discover new playlists based on how you're feeling right now!
-                </p>
+                <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">Find the right music for your mood. Discover new playlists based on how you're feeling right now!</p>
             </div>
-            
-            {/* Live Counter (Bottom Left) */}
             <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
-                 <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono">
-                    <Activity size={12} className="animate-pulse" /> Global Moods Mixed
-                 </div>
+                 <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
                  <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    {globalCount === null ? (
-                      <span className="animate-pulse">---</span>
-                    ) : (
-                      `+${globalCount.toLocaleString()}`
-                    )}
+                    {/* Se Firebase non è config, mostriamo 0 o un placeholder */}
+                    +{globalCount.toLocaleString()}
                 </div>
             </div>
         </div>
-
-        {/* --- RIGHT SECTION: The Mixer & Orbit --- */}
-        <div 
-            ref={rightPanelRef}
-            className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0"
-        >
-             {/* Meta Top Right */}
+        <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0">
              <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System</span>
-                 <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">
-                    Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
-                 </span>
+                 <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span></span>
             </div>
-
-            {/* The Core Container */}
             <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
-                 {/* --- CONCENTRIC RINGS (Tighter) --- */}
                 <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
                 <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
                 <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
                 <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
-
-                {/* Heart / Drop Zone */}
                 <div className="relative w-48 h-48 flex items-center justify-center">
                     <div className="relative z-10">
-                        {selectedMoods.length === 0 ? (
-                            <Heart 
-                                strokeWidth={1} 
-                                size={48} 
-                                className="text-zinc-700 transition-colors duration-500" 
-                            />
-                        ) : (
-                            <div className="grid grid-cols-2 gap-2">
-                                {selectedMoods.map(m => (
-                                    <button 
-                                        key={m.id}
-                                        onClick={() => removeMood(m.id)}
-                                        className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"
-                                    >
-                                        <m.icon size={16} />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
                     </div>
                 </div>
-
-                 {/* Action Button */}
                  <div className="absolute -bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
-                     {selectedMoods.length > 0 ? (
-                        <button
-                            onClick={generatePlaylistWithAI}
-                            disabled={loading}
-                            className="
-                                group inline-flex items-center justify-center gap-3 py-3 px-6
-                                text-sm font-mono uppercase tracking-[0.2em] text-lime-400
-                                border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md
-                                hover:bg-lime-500 hover:text-black transition-all duration-300
-                            "
-                        >
-                            {loading ? (
-                                <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                                <>
-                                    <span>Set up your mood!</span>
-                                    <Sparkles size={14} className="group-hover:animate-pulse" />
-                                </>
-                            )}
-                        </button>
-                     ) : (
-                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-                            Awaiting Input
-                        </span>
-                     )}
+                     {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
                 </div>
             </div>
-
-            {/* Orbiting Moods Layer */}
-            {availableMoods.map((mood, index) => (
-                <DraggableMood 
-                    key={mood.id} 
-                    index={index}
-                    total={availableMoods.length}
-                    mood={mood} 
-                    onDrop={handleDrop} 
-                    containerRef={rightPanelRef}
-                />
-            ))}
+            {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
         </div>
-
       </div>
-
-      {/* Result Overlay */}
       <ResultCard results={results} onReset={resetAll} />
-
     </div>
   );
 }
