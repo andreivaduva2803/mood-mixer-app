@@ -47,6 +47,54 @@ const MOOD_TYPES = [
   { id: 'dreamy', label: 'DREAM', icon: CloudFog, gradId: 'grad-violet', color: 'text-violet-300', glow: 'shadow-[0_0_20px_rgba(167,139,250,0.3)]' },
 ];
 
+const MOOD_PLAYLISTS = {
+  happy: [
+    { title: "Sunny Vibes", desc: "Radiant energy for your best days.", analysis: "High serotonin levels detected.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "sunshine" },
+    { title: "Good Vibes Only", desc: "Positive frequencies aligned.", analysis: "Optimism parameters maximized.", spotify_id: "37i9dQZF1DXcBWIGoYBM5M", image_keyword: "happy" },
+    { title: "Mood Booster", desc: "Elevating your mental state.", analysis: "Dopamine release imminent.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "smile" }
+  ],
+  sad: [
+    { title: "Melancholy Mix", desc: "Embracing the quiet moments.", analysis: "Low energy state acknowledged.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "rain" },
+    { title: "Sad Songs", desc: "For when you need to feel it all.", analysis: "Emotional resonance detected.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "sad" },
+    { title: "Life Sucks", desc: "It's okay to not be okay.", analysis: "Catharsis protocol initiated.", spotify_id: "37i9dQZF1DX3YSRoSdA634", image_keyword: "lonely" }
+  ],
+  energetic: [
+    { title: "Beast Mode", desc: "Unleash your inner power.", analysis: "Adrenaline levels spiking.", spotify_id: "37i9dQZF1DX76Wlfdnj7AP", image_keyword: "energy" },
+    { title: "Workout Hype", desc: "Pushing past the limits.", analysis: "Physical output maximized.", spotify_id: "37i9dQZF1DX70RN3TfWWJh", image_keyword: "gym" },
+    { title: "Pumped Up", desc: "Ready for anything.", analysis: "Kinetic energy overflow.", spotify_id: "37i9dQZF1DX0HRj9P7NxeE", image_keyword: "running" }
+  ],
+  angry: [
+    { title: "Rage Mode", desc: "Channeling the fire within.", analysis: "Aggression levels elevated.", spotify_id: "37i9dQZF1DX3YSRoSdA634", image_keyword: "fire" },
+    { title: "Heavy Metal", desc: "Distorted reality.", analysis: "Sonic intensity critical.", spotify_id: "37i9dQZF1DX9qNs32fujYe", image_keyword: "metal" },
+    { title: "Punk Essentials", desc: "Rebellion frequency.", analysis: "Non-compliance detected.", spotify_id: "37i9dQZF1DX3LDIBRoaCDQ", image_keyword: "punk" }
+  ],
+  chill: [
+    { title: "Chill Hits", desc: "Relax and unwind.", analysis: "Stress levels minimizing.", spotify_id: "37i9dQZF1DX4WYpdgoIcn6", image_keyword: "relax" },
+    { title: "Lo-Fi Beats", desc: "Background noise for peace.", analysis: "Brainwaves synchronizing.", spotify_id: "37i9dQZF1DX8Uebhn9wzrS", image_keyword: "lofi" },
+    { title: "Acoustic Chill", desc: "Stripped back and simple.", analysis: "Harmonic resonance stable.", spotify_id: "37i9dQZF1DX6z20IXmBjWI", image_keyword: "acoustic" }
+  ],
+  focused: [
+    { title: "Deep Focus", desc: "Locked in and productive.", analysis: "Concentration absolute.", spotify_id: "37i9dQZF1DX5trt9i14X7j", image_keyword: "focus" },
+    { title: "Brain Food", desc: "Nourishment for the mind.", analysis: "Cognitive function optimized.", spotify_id: "37i9dQZF1DX83I5je4W4rP", image_keyword: "brain" },
+    { title: "Instrumental Study", desc: "Words are distractions.", analysis: "Verbal processing suspended.", spotify_id: "37i9dQZF1DX9sIqqvKsjG8", image_keyword: "study" }
+  ],
+  creative: [
+    { title: "Creative Flow", desc: "Unlocking the imagination.", analysis: "Lateral thinking engaged.", spotify_id: "37i9dQZF1DX9sIqqvKsjG8", image_keyword: "art" },
+    { title: "Indie Inspiration", desc: "New sounds, new ideas.", analysis: "Novelty seeking active.", spotify_id: "37i9dQZF1DX2Nc3B70tvx0", image_keyword: "paint" },
+    { title: "Art Pop", desc: "Breaking the mold.", analysis: "Convention disregarded.", spotify_id: "37i9dQZF1DXbYM3nMM0oPk", image_keyword: "colors" }
+  ],
+  nostalgic: [
+    { title: "All Out 80s", desc: "Back to the future.", analysis: "Temporal displacement detected.", spotify_id: "37i9dQZF1DX4UtSsGT1Sbe", image_keyword: "retro" },
+    { title: "90s Smash Hits", desc: "The golden era.", analysis: "Memory banks accessing.", spotify_id: "37i9dQZF1DXbTxeAdrVG2l", image_keyword: "90s" },
+    { title: "Throwback Thursday", desc: "Reliving the classics.", analysis: "Nostalgia circuits firing.", spotify_id: "37i9dQZF1DX0s5kDXi1kD5", image_keyword: "tape" }
+  ],
+  dreamy: [
+    { title: "Dreamy Vibes", desc: "Floating in the ether.", analysis: "Reality distortion field active.", spotify_id: "37i9dQZF1DX6z20IXmBjWI", image_keyword: "clouds" },
+    { title: "Shoegaze Classics", desc: "Wall of sound.", analysis: "Auditory immersion complete.", spotify_id: "37i9dQZF1DX68H8ZujdnN7", image_keyword: "dream" },
+    { title: "Ethereal", desc: "Otherworldly sounds.", analysis: "Ascension imminent.", spotify_id: "37i9dQZF1DX82pCGH5USnM", image_keyword: "sky" }
+  ]
+};
+
 const FALLBACK_PLAYLISTS = [
   {
     title: "OFFLINE PROTOCOL A",
@@ -54,26 +102,11 @@ const FALLBACK_PLAYLISTS = [
     analysis: "Unable to parse bio-data.",
     cover: "https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=500&auto=format&fit=crop&q=60",
     url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
-  },
-  {
-    title: "OFFLINE PROTOCOL B",
-    desc: "Backup frequency enabled.",
-    analysis: "Static detected.",
-    cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60",
-    url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
-  },
-  {
-    title: "OFFLINE PROTOCOL C",
-    desc: "Emergency silence breaker.",
-    analysis: "System rebooting.",
-    cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60",
-    url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
   }
 ];
 
 async function callGemini(prompt) {
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-    console.warn("API Key mancante.");
     return null;
   }
   try {
@@ -193,7 +226,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
-      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}`}
+      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10'}`}
       style={{
         touchAction: 'none', // Critico per evitare lo scroll durante il drag
         left: '50%',
@@ -274,6 +307,32 @@ export default function App() {
     setAvailableMoods(prev => [...prev, mood]);
   };
 
+  const generateLocalPlaylists = (moods) => {
+    // Collect all possible playlists from selected moods
+    let pool = [];
+    moods.forEach(m => {
+      if (MOOD_PLAYLISTS[m.id]) {
+        pool = [...pool, ...MOOD_PLAYLISTS[m.id]];
+      }
+    });
+
+    // If no specific playlists found or pool is empty, use fallback/random logic
+    if (pool.length === 0) {
+      // Fallback to 'chill' if nothing else
+      pool = MOOD_PLAYLISTS['chill'];
+    }
+
+    // Shuffle and pick 3 unique
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+
+    return selected.map(p => ({
+      ...p,
+      cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`,
+      url: `https://open.spotify.com/playlist/${p.spotify_id}`
+    }));
+  };
+
   const generatePlaylistWithAI = async () => {
     setLoading(true);
 
@@ -282,16 +341,28 @@ export default function App() {
     setGlobalCount(newCount);
     localStorage.setItem('mood_mixer_count', newCount.toString());
 
-    const moodLabels = selectedMoods.map(m => m.label).join(', ');
-    const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
-    const jsonString = await callGemini(prompt);
-    if (jsonString) {
-      try {
-        const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
-        const data = JSON.parse(cleanedJson);
-        setResults(data.playlists.map(p => ({ ...p, cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`, url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}` })));
-      } catch (e) { setResults(FALLBACK_PLAYLISTS); }
-    } else { setResults(FALLBACK_PLAYLISTS); }
+    // Try AI first if key exists
+    if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
+      const moodLabels = selectedMoods.map(m => m.label).join(', ');
+      const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
+      const jsonString = await callGemini(prompt);
+      if (jsonString) {
+        try {
+          const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
+          const data = JSON.parse(cleanedJson);
+          setResults(data.playlists.map(p => ({ ...p, cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`, url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}` })));
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error("AI Parse Error, falling back to local", e);
+        }
+      }
+    }
+
+    // Fallback to local generation
+    await new Promise(r => setTimeout(r, 1500)); // Fake delay for "processing" feel
+    const localResults = generateLocalPlaylists(selectedMoods);
+    setResults(localResults);
     setLoading(false);
   };
 
@@ -325,8 +396,6 @@ export default function App() {
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
         <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
           <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
-            <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
           </div>
           <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">Mood Mixer</h1>
@@ -342,8 +411,6 @@ export default function App() {
         </div>
         <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0">
           <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System</span>
-            <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span></span>
           </div>
           <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
             <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
