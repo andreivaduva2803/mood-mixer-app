@@ -243,11 +243,24 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 };
 
 const ResultCard = ({ results, onReset }) => {
+  const [selectedIndex, setSelectedIndex] = useState(1); // Start with middle card
+  const carouselRef = useRef(null);
+
   if (!results) return null;
 
+  const scrollToCard = (index) => {
+    setSelectedIndex(index);
+    if (carouselRef.current) {
+      const card = carouselRef.current.children[index];
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500 overflow-auto">
-      <div className="relative w-full max-w-7xl flex flex-col items-center min-h-[80vh] justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500">
+      <div className="relative w-full h-full flex flex-col">
 
         {/* Header */}
         <div className="absolute top-0 left-0 w-full flex justify-between items-center p-6 md:p-12 z-50">
@@ -261,28 +274,35 @@ const ResultCard = ({ results, onReset }) => {
         </div>
 
         {/* Title */}
-        <div className="text-center mb-16 md:mb-24 relative z-10 mt-20 md:mt-0">
-          <h2 className="text-4xl md:text-6xl font-serif text-white mb-4 tracking-tight">
+        <div className="text-center mt-24 md:mt-32 mb-8 md:mb-12 px-4">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-white mb-2 tracking-tight">
             Selected frequencies<br />
             <span className="text-zinc-500">aligned with your mood</span>
           </h2>
         </div>
 
         {/* Carousel Container */}
-        <div className="w-full overflow-x-auto overflow-y-hidden flex flex-nowrap gap-6 md:gap-8 snap-x snap-mandatory py-4 px-2 md:px-0 scrollbar-none scroll-smooth touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          ref={carouselRef}
+          className="flex-1 w-full overflow-x-auto overflow-y-hidden flex items-center gap-4 md:gap-6 px-4 md:px-8 snap-x snap-mandatory scrollbar-none scroll-smooth"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          {/* Spacer for centering first card on mobile */}
+          <div className="flex-shrink-0 w-[calc(50vw-180px)] md:w-[calc(50vw-240px)]"></div>
+
           {results.map((playlist, idx) => {
-            const isCenter = idx === 1; // used for styling larger card
+            const isSelected = idx === selectedIndex;
             return (
               <div
                 key={idx}
+                onClick={() => scrollToCard(idx)}
                 className={`
-                  flex-shrink-0 snap-center relative group flex flex-col
-                  w-full md:w-[380px] aspect-[3/4]
+                  flex-shrink-0 snap-center relative group flex flex-col cursor-pointer
+                  w-[320px] md:w-[420px] aspect-[3/4]
                   rounded-[2rem] overflow-hidden
-                  bg-zinc-900 shadow-2xl transition-transform duration-500 ease-out
-                  ${isCenter ? 'scale-110 z-20 border-lime-500/30' : 'scale-100 opacity-80 hover:opacity-100'}
+                  bg-zinc-900 shadow-2xl transition-all duration-500 ease-out
+                  ${isSelected ? 'scale-100 md:scale-110 opacity-100 ring-2 ring-lime-500/50' : 'scale-90 md:scale-95 opacity-60 hover:opacity-80 hover:scale-95 md:hover:scale-100'}
                 `}
-                style={{ animationDelay: `${idx * 150}ms` }}
               >
                 {/* Full Background Image */}
                 <div className="absolute inset-0 w-full h-full">
@@ -295,25 +315,26 @@ const ResultCard = ({ results, onReset }) => {
                       e.target.src = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=60';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                 </div>
 
                 {/* Content Overlay */}
-                <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col gap-3">
+                <div className="absolute bottom-0 left-0 w-full p-6 md:p-8 flex flex-col gap-3">
                   <p className="text-xs font-mono text-lime-400 uppercase tracking-widest">
                     {playlist.analysis.split(' ')[0]} Protocol
                   </p>
                   <h3 className="text-2xl md:text-3xl font-serif text-white leading-tight">
                     {playlist.title}
                   </h3>
-                  <p className="text-zinc-400 text-sm line-clamp-2">
+                  <p className={`text-zinc-400 text-sm leading-relaxed transition-all duration-300 ${isSelected ? 'line-clamp-3 opacity-100' : 'line-clamp-2 opacity-70'}`}>
                     {playlist.desc}
                   </p>
                   <a
                     href={playlist.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 text-sm text-lime-400 hover:text-white transition-colors flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-2 text-sm text-lime-400 hover:text-white transition-colors flex items-center gap-2"
                   >
                     Listen on Spotify <ExternalLink size={14} />
                   </a>
@@ -321,6 +342,21 @@ const ResultCard = ({ results, onReset }) => {
               </div>
             );
           })}
+
+          {/* Spacer for centering last card on mobile */}
+          <div className="flex-shrink-0 w-[calc(50vw-180px)] md:w-[calc(50vw-240px)]"></div>
+        </div>
+
+        {/* Navigation Dots */}
+        <div className="flex justify-center gap-2 py-6 md:py-8">
+          {results.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => scrollToCard(idx)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === selectedIndex ? 'bg-lime-500 w-8' : 'bg-zinc-700 hover:bg-zinc-500'
+                }`}
+            />
+          ))}
         </div>
       </div>
     </div>
