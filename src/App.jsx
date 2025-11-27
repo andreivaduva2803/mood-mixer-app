@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Heart, 
-  Zap, 
-  CloudRain, 
-  Sun, 
-  Flame, 
-  Moon, 
+import {
+  Heart,
+  Zap,
+  CloudRain,
+  Sun,
+  Flame,
+  Moon,
   X,
   ExternalLink,
   Sparkles,
@@ -72,8 +72,8 @@ const FALLBACK_PLAYLISTS = [
 
 async function callGemini(prompt) {
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-      console.warn("API Key mancante.");
-      return null;
+    console.warn("API Key mancante.");
+    return null;
   }
   try {
     const response = await fetch(
@@ -105,10 +105,10 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   // Gestione dinamica del raggio per mobile
   useEffect(() => {
     const handleResize = () => {
-        // Raggio più piccolo su schermi stretti per evitare overflow
-        radiusRef.current = window.innerWidth < 768 ? 130 : 170;
+      // Raggio più piccolo su schermi stretti per evitare overflow
+      radiusRef.current = window.innerWidth < 768 ? 130 : 170;
     };
-    
+
     handleResize(); // Set initial
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -120,7 +120,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       if (!isDragging) {
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
-        
+
         setOrbitPosition({
           x: Math.cos(angle) * radiusRef.current,
           y: Math.sin(angle) * radiusRef.current
@@ -134,7 +134,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
   const handlePointerDown = (e) => {
     e.preventDefault();
-    e.stopPropagation(); 
+    e.stopPropagation();
     setDragPosition({ x: orbitPosition.x, y: orbitPosition.y });
     setIsDragging(true);
     e.target.setPointerCapture(e.pointerId);
@@ -146,13 +146,13 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       const parentRect = containerRef.current.getBoundingClientRect();
       const centerX = parentRect.left + parentRect.width / 2;
       const centerY = parentRect.top + parentRect.height / 2;
-      
+
       // Calcolo sicuro della posizione
       const clientX = e.clientX || (e.touches && e.touches[0].clientX);
       const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      
+
       if (clientX && clientY) {
-          setDragPosition({ x: clientX - centerX, y: clientY - centerY });
+        setDragPosition({ x: clientX - centerX, y: clientY - centerY });
       }
     }
   };
@@ -161,10 +161,10 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     if (!isDragging) return;
     setIsDragging(false);
     e.target.releasePointerCapture(e.pointerId);
-    
+
     // Distanza dal centro per il drop (Heart)
     if (Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2) < 120) {
-        onDrop(mood);
+      onDrop(mood);
     }
   };
 
@@ -176,23 +176,23 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       // Aggiunti listener touch espliciti per sicurezza su alcuni browser mobile
-      onTouchStart={handlePointerDown} 
+      onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
       className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}`}
-      style={{ 
-          touchAction: 'none', // Critico per evitare lo scroll durante il drag
-          left: '50%', 
-          top: '50%', 
-          marginLeft: '-32px', 
-          marginTop: '-32px', 
-          transform: `translate(${activePosition.x}px, ${activePosition.y}px)` 
+      style={{
+        touchAction: 'none', // Critico per evitare lo scroll durante il drag
+        left: '50%',
+        top: '50%',
+        marginLeft: '-32px',
+        marginTop: '-32px',
+        transform: `translate(${activePosition.x}px, ${activePosition.y}px)`
       }}
     >
-        <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
-            <mood.icon className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
-            <span className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isDragging ? 'opacity-100' : ''}`}>{mood.label}</span>
-        </div>
+      <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
+        <mood.icon className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
+        <span className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isDragging ? 'opacity-100' : ''}`}>{mood.label}</span>
+      </div>
     </div>
   );
 };
@@ -203,28 +203,28 @@ const ResultCard = ({ results, onReset }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-700 overflow-y-auto">
       <div className="relative w-full max-w-lg bg-[#101010] border border-white/10 p-1 shadow-2xl rounded-2xl my-auto">
         <div className="relative border border-white/5 rounded-xl h-full p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest relative z-10 border-b border-white/5 pb-4">
-                <span className="flex items-center gap-2"><Sparkles size={12} className="text-lime-500"/> Generated Output</span>
-                <button onClick={onReset} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"><X size={18} /></button>
-            </div>
-            <div className="space-y-4 relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                {results.map((playlist, idx) => (
-                    <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-lime-500/30 transition-all duration-300">
-                        <div className="relative w-full sm:w-20 h-20 shrink-0 overflow-hidden bg-zinc-900 rounded-lg shadow-lg">
-                            <img src={playlist.cover} alt={playlist.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between">
-                            <div><h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">{playlist.title}</h3><p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">{playlist.desc}</p></div>
-                            <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-end">
-                                <span className="text-[9px] text-zinc-500 font-mono">{playlist.analysis.substring(0, 30)}...</span>
-                                <a href={playlist.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"><ExternalLink size={14} /></a>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className="pt-2 text-center relative z-10"><span className="text-[9px] text-zinc-600 font-mono uppercase">Select a stream to initiate</span></div>
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest relative z-10 border-b border-white/5 pb-4">
+            <span className="flex items-center gap-2"><Sparkles size={12} className="text-lime-500" /> Generated Output</span>
+            <button onClick={onReset} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"><X size={18} /></button>
+          </div>
+          <div className="space-y-4 relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            {results.map((playlist, idx) => (
+              <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-lime-500/30 transition-all duration-300">
+                <div className="relative w-full sm:w-20 h-20 shrink-0 overflow-hidden bg-zinc-900 rounded-lg shadow-lg">
+                  <img src={playlist.cover} alt={playlist.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500" />
+                </div>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div><h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">{playlist.title}</h3><p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">{playlist.desc}</p></div>
+                  <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-end">
+                    <span className="text-[9px] text-zinc-500 font-mono">{playlist.analysis.substring(0, 30)}...</span>
+                    <a href={playlist.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"><ExternalLink size={14} /></a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="pt-2 text-center relative z-10"><span className="text-[9px] text-zinc-600 font-mono uppercase">Select a stream to initiate</span></div>
         </div>
       </div>
     </div>
@@ -234,19 +234,19 @@ const ResultCard = ({ results, onReset }) => {
 export default function App() {
   const [selectedMoods, setSelectedMoods] = useState([]);
   const [availableMoods, setAvailableMoods] = useState(MOOD_TYPES);
-  const [results, setResults] = useState(null); 
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const rightPanelRef = useRef(null); 
-  
+  const rightPanelRef = useRef(null);
+
   // Contatore locale persistente
   const [globalCount, setGlobalCount] = useState(() => {
-      // Inizializza leggendo dal localStorage o usa un default di 2000
-      try {
-          const saved = localStorage.getItem('mood_mixer_count');
-          return saved ? parseInt(saved, 10) : 2000;
-      } catch {
-          return 2000;
-      }
+    // Inizializza leggendo dal localStorage o usa un default di 0
+    try {
+      const saved = localStorage.getItem('mood_mixer_count');
+      return saved ? parseInt(saved, 10) : 0;
+    } catch {
+      return 0;
+    }
   });
 
   const handleDrop = (mood) => {
@@ -262,12 +262,12 @@ export default function App() {
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-    
+
     // Aggiorna contatore locale
     const newCount = globalCount + 1;
     setGlobalCount(newCount);
     localStorage.setItem('mood_mixer_count', newCount.toString());
-    
+
     const moodLabels = selectedMoods.map(m => m.label).join(', ');
     const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
     const jsonString = await callGemini(prompt);
@@ -309,42 +309,42 @@ export default function App() {
       </div>
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
         <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
-            <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
-                <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
+          <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
+            <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
+          </div>
+          <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">Mood Mixer</h1>
+            <div className="h-px w-16 md:w-24 bg-lime-500"></div>
+            <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">Find the right music for your mood. Discover new playlists based on how you're feeling right now!</p>
+          </div>
+          <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
+            <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
+            <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              {globalCount.toLocaleString()}
             </div>
-            <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">Mood Mixer</h1>
-                <div className="h-px w-16 md:w-24 bg-lime-500"></div>
-                <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">Find the right music for your mood. Discover new playlists based on how you're feeling right now!</p>
-            </div>
-            <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
-                 <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
-                 <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    +{globalCount.toLocaleString()}
-                </div>
-            </div>
+          </div>
         </div>
         <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0">
-             <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
-                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System</span>
-                 <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span></span>
+          <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System</span>
+            <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span></span>
+          </div>
+          <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
+            <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
+            <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
+            <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
+            <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
+            <div className="relative w-48 h-48 flex items-center justify-center">
+              <div className="relative z-10">
+                {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
+              </div>
             </div>
-            <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
-                <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
-                <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
-                <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
-                <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                    <div className="relative z-10">
-                        {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
-                    </div>
-                </div>
-                 <div className="absolute -bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
-                     {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
-                </div>
+            <div className="absolute -bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
+              {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
             </div>
-            {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
+          </div>
+          {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
         </div>
       </div>
       <ResultCard results={results} onReset={resetAll} />
