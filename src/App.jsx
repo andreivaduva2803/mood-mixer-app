@@ -16,45 +16,10 @@ import {
   CloudFog,
   Activity
 } from 'lucide-react';
-// Importiamo le funzioni di Firebase
-// Nota: Se non hai un progetto Firebase, il contatore globale non funzionerà, ma il sito non crasherà.
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, increment, setDoc } from 'firebase/firestore';
 
 // --- CONFIGURAZIONE ---
 
-const apiKey = "YOUR_GEMINI_API_KEY_HERE"; // <--- INSERISCI QUI LA TUA CHIAVE GEMINI
-
-// --- CONFIGURAZIONE FIREBASE ---
-// Per far funzionare il contatore globale su Netlify, devi creare un progetto su firebase.google.com
-// e incollare qui sotto i dati che ti danno.
-// Se lasci questo oggetto vuoto o finto, il contatore rimarrà a 0.
-const firebaseConfig = {
-  apiKey: "API_KEY_FIREBASE",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  projectId: "PROJECT_ID",
-  storageBucket: "PROJECT_ID.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
-};
-
-// Inizializzazione sicura di Firebase
-let app, auth, db;
-try {
-  // Controlliamo se la config è valida prima di inizializzare
-  if (firebaseConfig.projectId !== "PROJECT_ID") {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-  } else {
-      console.warn("Firebase non configurato. Il contatore globale non funzionerà.");
-  }
-} catch (e) {
-  console.error("Errore init Firebase:", e);
-}
-
-const appId = "mood-mixer-v1";
+const apiKey = ""; // API Key will be injected by the environment
 
 // --- DATI ---
 
@@ -135,15 +100,31 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [orbitPosition, setOrbitPosition] = useState({ x: 0, y: 0 });
   const animationRef = useRef();
-  const elementRef = useRef(null);
+  const radiusRef = useRef(170); // Default desktop radius
 
+  // Gestione dinamica del raggio per mobile
+  useEffect(() => {
+    const handleResize = () => {
+        // Raggio più piccolo su schermi stretti per evitare overflow
+        radiusRef.current = window.innerWidth < 768 ? 130 : 170;
+    };
+    
+    handleResize(); // Set initial
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // JS-based Orbit Animation
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging) {
-        const radius = window.innerWidth < 1024 ? 135 : 170;
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
-        setOrbitPosition({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
+        
+        setOrbitPosition({
+          x: Math.cos(angle) * radiusRef.current,
+          y: Math.sin(angle) * radiusRef.current
+        });
       }
       animationRef.current = requestAnimationFrame(updateOrbit);
     };
@@ -165,7 +146,14 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       const parentRect = containerRef.current.getBoundingClientRect();
       const centerX = parentRect.left + parentRect.width / 2;
       const centerY = parentRect.top + parentRect.height / 2;
-      setDragPosition({ x: e.clientX - centerX, y: e.clientY - centerY });
+      
+      // Calcolo sicuro della posizione
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      
+      if (clientX && clientY) {
+          setDragPosition({ x: clientX - centerX, y: clientY - centerY });
+      }
     }
   };
 
@@ -173,19 +161,33 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     if (!isDragging) return;
     setIsDragging(false);
     e.target.releasePointerCapture(e.pointerId);
-    if (Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2) < 120) onDrop(mood);
+    
+    // Distanza dal centro per il drop (Heart)
+    if (Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2) < 120) {
+        onDrop(mood);
+    }
   };
 
   const activePosition = isDragging ? dragPosition : orbitPosition;
 
   return (
     <div
-      ref={elementRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      // Aggiunti listener touch espliciti per sicurezza su alcuni browser mobile
+      onTouchStart={handlePointerDown} 
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
       className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}`}
-      style={{ touchAction: 'none', left: '50%', top: '50%', marginLeft: '-32px', marginTop: '-32px', transform: `translate(${activePosition.x}px, ${activePosition.y}px)` }}
+      style={{ 
+          touchAction: 'none', // Critico per evitare lo scroll durante il drag
+          left: '50%', 
+          top: '50%', 
+          marginLeft: '-32px', 
+          marginTop: '-32px', 
+          transform: `translate(${activePosition.x}px, ${activePosition.y}px)` 
+      }}
     >
         <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
             <mood.icon className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
@@ -235,28 +237,17 @@ export default function App() {
   const [results, setResults] = useState(null); 
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null); 
-  const [user, setUser] = useState(null);
-  const [globalCount, setGlobalCount] = useState(0); 
-
-  useEffect(() => {
-    if (!auth) return; 
-    const initAuth = async () => { await signInAnonymously(auth).catch(e => console.error(e)); };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!user || !db) return;
-    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
-    const unsubStats = onSnapshot(statsRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data && typeof data.generations === 'number') setGlobalCount(data.generations);
+  
+  // Contatore locale persistente
+  const [globalCount, setGlobalCount] = useState(() => {
+      // Inizializza leggendo dal localStorage o usa un default di 2000
+      try {
+          const saved = localStorage.getItem('mood_mixer_count');
+          return saved ? parseInt(saved, 10) : 2000;
+      } catch {
+          return 2000;
       }
-    }, (error) => console.error("Stats error:", error));
-    return () => unsubStats();
-  }, [user]);
+  });
 
   const handleDrop = (mood) => {
     setAvailableMoods(prev => prev.filter(m => m.id !== mood.id));
@@ -271,10 +262,12 @@ export default function App() {
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-    if (user && db) {
-        const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_counts');
-        try { await setDoc(statsRef, { generations: increment(1) }, { merge: true }); } catch (e) { console.error("Stats update failed", e); }
-    }
+    
+    // Aggiorna contatore locale
+    const newCount = globalCount + 1;
+    setGlobalCount(newCount);
+    localStorage.setItem('mood_mixer_count', newCount.toString());
+    
     const moodLabels = selectedMoods.map(m => m.label).join(', ');
     const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
     const jsonString = await callGemini(prompt);
@@ -328,7 +321,6 @@ export default function App() {
             <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
                  <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
                  <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                    {/* Se Firebase non è config, mostriamo 0 o un placeholder */}
                     +{globalCount.toLocaleString()}
                 </div>
             </div>
