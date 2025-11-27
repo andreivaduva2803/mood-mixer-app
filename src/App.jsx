@@ -109,8 +109,9 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging) {
-        // Radius logic responsive
-        const radius = window.innerWidth < 1024 ? 110 : 170; // Smaller on mobile/tablet
+        // Updated radius logic for better mobile layout
+        // Mobile: 135px (was 110), Desktop: 170px
+        const radius = window.innerWidth < 1024 ? 135 : 170; 
         const time = Date.now() * 0.0001;
         const angle = time + (index * (2 * Math.PI / total));
         
@@ -425,14 +426,14 @@ export default function App() {
       <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
 
         {/* --- LEFT SECTION: Title & Context --- */}
-        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
+        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 text-center lg:text-left">
             
             <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
                 <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
             </div>
 
-            <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-8 lg:mt-0 flex flex-col items-center lg:items-start">
+            <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-16 lg:mt-0 flex flex-col items-center lg:items-start">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">
                     Mood Mixer
                 </h1>
@@ -443,16 +444,17 @@ export default function App() {
             </div>
             
             <div className="hidden lg:block absolute bottom-12 left-12">
-                 <div className="text-4xl font-light text-zinc-800 select-none">
-                    Created with love by Badu
+                 <div className="text-6xl font-light text-zinc-800 select-none">
+                    +2K
                 </div>
             </div>
         </div>
 
         {/* --- RIGHT SECTION: The Mixer & Orbit --- */}
+        {/* Added flex-grow to ensure it takes remaining height on mobile */}
         <div 
             ref={rightPanelRef}
-            className="relative flex items-center justify-center z-20 flex-1 min-h-[50vh] lg:min-h-screen"
+            className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-12 lg:pb-0"
         >
              {/* Meta Top Right */}
              <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
@@ -463,7 +465,8 @@ export default function App() {
             </div>
 
             {/* The Core Container */}
-            <div className="relative z-10 animate-in zoom-in duration-1000 scale-[0.65] md:scale-75 lg:scale-100">
+            {/* Scale restored to 100% on mobile for usability, still 100% on desktop */}
+            <div className="relative z-10 animate-in zoom-in duration-1000 scale-100">
                  {/* --- CONCENTRIC RINGS (Tighter) --- */}
                 <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
                 <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
