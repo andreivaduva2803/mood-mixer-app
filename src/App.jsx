@@ -496,7 +496,7 @@ export default function App() {
                 </div>
 
                  {/* Action Button */}
-                 <div className="absolute -bottom-24 left-0 right-0 text-center w-[200%] -ml-[50%]">
+                 <div className="absolute -bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
                      {selectedMoods.length > 0 ? (
                         <button
                             onClick={generatePlaylistWithAI}
