@@ -287,7 +287,7 @@ const ResultCard = ({ results, onReset }) => {
         </div>
 
         {/* Cards Container - Simple Scrollable */}
-        <div className="flex-1 w-full overflow-y-auto overflow-x-hidden flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 px-4 md:px-8 py-4">
+        <div className="flex-1 w-full overflow-y-auto overflow-x-hidden flex flex-col md:flex-row items-center justify-start md:justify-center gap-6 md:gap-8 px-4 md:px-8 py-4">
           {results.map((playlist, idx) => {
             return (
               <div
