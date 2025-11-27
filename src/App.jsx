@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Heart,
-  Zap,
-  CloudRain,
-  Sun,
-  Flame,
-  Moon,
-  Headphones,
+import { 
+  Heart, 
+  Zap, 
+  CloudRain, 
+  Sun, 
+  Flame, 
+  Moon, 
+  Headphones, 
   X,
   ExternalLink,
   Disc,
@@ -15,12 +15,12 @@ import {
   Brain,
   Lightbulb,
   CassetteTape,
-  CloudFog,
+  CloudFog
 } from 'lucide-react';
 
 // --- Configuration & Data ---
 
-const apiKey = ''; // API Key will be injected by the environment
+const apiKey = ""; // API Key will be injected by the environment
 
 // Define gradients map for referencing in SVG fills
 const GRADIENTS = {
@@ -35,88 +35,40 @@ const GRADIENTS = {
 };
 
 const MOOD_TYPES = [
-  {
-    id: 'happy',
-    label: 'EUPHORIA',
-    icon: Sun,
-    gradId: 'grad-yellow',
-    color: 'text-yellow-400',
-    glow: 'shadow-[0_0_20px_rgba(250,204,21,0.3)]',
-  },
-  {
-    id: 'sad',
-    label: 'MELANCHOLY',
-    icon: CloudRain,
-    gradId: 'grad-white',
-    color: 'text-slate-200',
-    glow: 'shadow-[0_0_20px_rgba(255,255,255,0.2)]',
-  },
-  {
-    id: 'energetic',
-    label: 'KINETIC',
-    icon: Zap,
-    gradId: 'grad-lime',
-    color: 'text-lime-400',
-    glow: 'shadow-[0_0_20px_rgba(163,230,53,0.3)]',
-  },
-  {
-    id: 'angry',
-    label: 'FORCE',
-    icon: Flame,
-    gradId: 'grad-orange',
-    color: 'text-orange-500',
-    glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]',
-  },
-  {
-    id: 'chill',
-    label: 'STASIS',
-    icon: Moon,
-    gradId: 'grad-cyan',
-    color: 'text-cyan-300',
-    glow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]',
-  },
-  {
-    id: 'focused',
-    label: 'FOCUS',
-    icon: Brain,
-    gradId: 'grad-emerald',
-    color: 'text-emerald-400',
-    glow: 'shadow-[0_0_20px_rgba(52,211,153,0.3)]',
-  },
-  {
-    id: 'creative',
-    label: 'CREATE',
-    icon: Lightbulb,
-    gradId: 'grad-yellow',
-    color: 'text-yellow-300',
-    glow: 'shadow-[0_0_20px_rgba(253,224,71,0.3)]',
-  },
-  {
-    id: 'nostalgic',
-    label: 'NOSTALGIA',
-    icon: CassetteTape,
-    gradId: 'grad-rose',
-    color: 'text-rose-400',
-    glow: 'shadow-[0_0_20px_rgba(251,113,133,0.3)]',
-  },
-  {
-    id: 'dreamy',
-    label: 'DREAM',
-    icon: CloudFog,
-    gradId: 'grad-violet',
-    color: 'text-violet-300',
-    glow: 'shadow-[0_0_20px_rgba(167,139,250,0.3)]',
-  },
+  { id: 'happy', label: 'EUPHORIA', icon: Sun, gradId: 'grad-yellow', color: 'text-yellow-400', glow: 'shadow-[0_0_20px_rgba(250,204,21,0.3)]' },
+  { id: 'sad', label: 'MELANCHOLY', icon: CloudRain, gradId: 'grad-white', color: 'text-slate-200', glow: 'shadow-[0_0_20px_rgba(255,255,255,0.2)]' },
+  { id: 'energetic', label: 'KINETIC', icon: Zap, gradId: 'grad-lime', color: 'text-lime-400', glow: 'shadow-[0_0_20px_rgba(163,230,53,0.3)]' },
+  { id: 'angry', label: 'FORCE', icon: Flame, gradId: 'grad-orange', color: 'text-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]' },
+  { id: 'chill', label: 'STASIS', icon: Moon, gradId: 'grad-cyan', color: 'text-cyan-300', glow: 'shadow-[0_0_20px_rgba(34,211,238,0.3)]' },
+  { id: 'focused', label: 'FOCUS', icon: Brain, gradId: 'grad-emerald', color: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(52,211,153,0.3)]' },
+  { id: 'creative', label: 'CREATE', icon: Lightbulb, gradId: 'grad-yellow', color: 'text-yellow-300', glow: 'shadow-[0_0_20px_rgba(253,224,71,0.3)]' },
+  { id: 'nostalgic', label: 'NOSTALGIA', icon: CassetteTape, gradId: 'grad-rose', color: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(251,113,133,0.3)]' },
+  { id: 'dreamy', label: 'DREAM', icon: CloudFog, gradId: 'grad-violet', color: 'text-violet-300', glow: 'shadow-[0_0_20px_rgba(167,139,250,0.3)]' },
 ];
 
-const FALLBACK_PLAYLIST = {
-  title: 'OFFLINE PROTOCOL',
-  desc: 'Neural link severed. Defaulting to local archives.',
-  analysis: 'Unable to parse bio-data. Connection required.',
-  cover:
-    'https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=500&auto=format&fit=crop&q=60',
-  url: 'https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN',
-};
+const FALLBACK_PLAYLISTS = [
+  {
+    title: "OFFLINE PROTOCOL A",
+    desc: "Neural link severed. Defaulting to local archives.",
+    analysis: "Unable to parse bio-data.",
+    cover: "https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=500&auto=format&fit=crop&q=60",
+    url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
+  },
+  {
+    title: "OFFLINE PROTOCOL B",
+    desc: "Backup frequency enabled.",
+    analysis: "Static detected.",
+    cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60",
+    url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
+  },
+  {
+    title: "OFFLINE PROTOCOL C",
+    desc: "Emergency silence breaker.",
+    analysis: "System rebooting.",
+    cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=60",
+    url: "https://open.spotify.com/playlist/37i9dQZF1E37jO8SiMT0yN"
+  }
+];
 
 // --- API Logic ---
 
@@ -157,14 +109,14 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging) {
-        // Radius logic
-        const radius = window.innerWidth < 768 ? 110 : 170;
+        // Radius logic responsive
+        const radius = window.innerWidth < 1024 ? 110 : 170; // Smaller on mobile/tablet
         const time = Date.now() * 0.0001;
-        const angle = time + index * ((2 * Math.PI) / total);
-
+        const angle = time + (index * (2 * Math.PI / total));
+        
         setOrbitPosition({
           x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius,
+          y: Math.sin(angle) * radius
         });
       }
       animationRef.current = requestAnimationFrame(updateOrbit);
@@ -176,7 +128,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
   const handlePointerDown = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); 
     setDragPosition({ x: orbitPosition.x, y: orbitPosition.y });
     setIsDragging(true);
     e.target.setPointerCapture(e.pointerId);
@@ -196,11 +148,11 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
     if (!isDragging) return;
     setIsDragging(false);
     e.target.releasePointerCapture(e.pointerId);
-
+    
     const distance = Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2);
-    if (distance < 120) {
+    if (distance < 120) { 
       onDrop(mood);
-    }
+    } 
   };
 
   const activePosition = isDragging ? dragPosition : orbitPosition;
@@ -217,121 +169,111 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
         backdrop-blur-sm bg-white/5 border border-white/10
         cursor-grab active:cursor-grabbing
         shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]
-        ${
-          isDragging
-            ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10'
-            : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'
-        }
+        ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10 transition-transform duration-200'}
       `}
       style={{
         touchAction: 'none',
         left: '50%',
         top: '50%',
-        marginLeft: '-32px',
-        marginTop: '-32px',
+        marginLeft: '-32px', // Approx centered (adjusts via JS anyway)
+        marginTop: '-32px',   
         transform: `translate(${activePosition.x}px, ${activePosition.y}px)`,
       }}
     >
-      <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
-        {/* Skeuomorphic Icon:
-                - Fill with gradient (opacity controlled via gradient definition)
-                - Drop Shadow for depth on the stroke
-            */}
-        <mood.icon
-          className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`}
-          strokeWidth={1.5}
-          fill={`url(#${mood.gradId})`}
-          fillOpacity="0.4"
-        />
-
-        <span
-          className={`
+        <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
+            <mood.icon 
+                className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} 
+                strokeWidth={1.5} 
+                fill={`url(#${mood.gradId})`}
+                fillOpacity="0.4"
+            />
+            
+            <span className={`
                 absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 
                 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300
                 ${isDragging ? 'opacity-100' : ''}
-            `}
-        >
-          {mood.label}
-        </span>
-      </div>
+            `}>
+                {mood.label}
+            </span>
+        </div>
     </div>
   );
 };
 
-const ResultCard = ({ result, onReset }) => {
-  if (!result) return null;
+const ResultCard = ({ results, onReset }) => {
+  if (!results) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-700">
-      <div className="relative w-full max-w-md bg-[#101010] border border-white/10 p-1 shadow-2xl rounded-2xl">
-        <div className="relative border border-white/5 rounded-xl h-full p-6 flex flex-col gap-6 overflow-hidden">
-          {/* Ambient Card Background */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-700 overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-[#101010] border border-white/10 p-1 shadow-2xl rounded-2xl my-auto">
+        <div className="relative border border-white/5 rounded-xl h-full p-4 md:p-6 flex flex-col gap-6 overflow-hidden">
+            
+            {/* Ambient Card Background */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          <div className="flex justify-between items-start text-[9px] font-mono text-zinc-500 uppercase tracking-widest relative z-10">
-            <span>Output Gen. 01</span>
-            <span>{new Date().getFullYear()}</span>
-          </div>
-
-          <div className="flex gap-6 items-start relative z-10">
-            <div className="relative w-24 h-24 shrink-0 overflow-hidden bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg group">
-              <img
-                src={result.cover}
-                alt={result.title}
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
-              />
-              <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-lg"></div>
-            </div>
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-2 text-lime-400">
-                <Sparkles size={12} />
-                <span className="text-[9px] font-mono uppercase tracking-widest">
-                  Generated Match
+            <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest relative z-10 border-b border-white/5 pb-4">
+                <span className="flex items-center gap-2">
+                    <Sparkles size={12} className="text-lime-500"/> 
+                    Generated Output
                 </span>
-              </div>
-              <h2 className="text-2xl font-semibold text-white leading-tight">
-                {result.title}
-              </h2>
-              <p className="text-xs text-zinc-400 font-light leading-relaxed line-clamp-2">
-                {result.desc}
-              </p>
+                <button 
+                    onClick={onReset}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+                >
+                    <X size={18} />
+                </button>
             </div>
-          </div>
+            
+            {/* Scrollable list of 3 playlists */}
+            <div className="space-y-4 relative z-10 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {results.map((playlist, idx) => (
+                    <div key={idx} className="group flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-lime-500/30 transition-all duration-300">
+                        {/* Cover */}
+                        <div className="relative w-full sm:w-20 h-20 shrink-0 overflow-hidden bg-zinc-900 rounded-lg shadow-lg">
+                            <img 
+                                src={playlist.cover} 
+                                alt={playlist.title} 
+                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
+                            />
+                        </div>
 
-          <div className="border-t border-dashed border-zinc-800 pt-6 relative z-10">
-            <p className="text-xs text-zinc-500 font-mono leading-relaxed">
-              <span className="text-lime-500 mr-2">{'>>>'} ANALYSIS:</span>
-              {result.analysis}
-            </p>
-          </div>
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white leading-tight group-hover:text-lime-400 transition-colors">
+                                    {playlist.title}
+                                </h3>
+                                <p className="text-xs text-zinc-400 font-light mt-1 line-clamp-2">
+                                    {playlist.desc}
+                                </p>
+                            </div>
+                            
+                            {/* Analysis snippet */}
+                            <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-end">
+                                <span className="text-[9px] text-zinc-500 font-mono">
+                                    {playlist.analysis.substring(0, 30)}...
+                                </span>
+                                <a 
+                                    href={playlist.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="p-2 bg-white text-black rounded-full hover:bg-lime-400 transition-colors shadow-lg transform hover:scale-105"
+                                >
+                                    <ExternalLink size={14} />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
-          <div className="pt-2 grid grid-cols-[1fr_auto] gap-4 relative z-10">
-            <a
-              href={result.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                        flex items-center justify-center gap-3
-                        bg-white text-black h-12 px-6 rounded-lg
-                        font-medium text-sm tracking-wide
-                        hover:bg-lime-400 transition-colors duration-300 shadow-lg
-                    "
-            >
-              <span>INITIATE STREAM</span>
-              <ExternalLink size={14} />
-            </a>
-            <button
-              onClick={onReset}
-              className="
-                        flex items-center justify-center w-12 h-12
-                        border border-zinc-800 text-zinc-400 rounded-lg
-                        hover:text-white hover:border-white transition-colors bg-white/5
-                    "
-            >
-              <X size={18} />
-            </button>
-          </div>
+            <div className="pt-2 text-center relative z-10">
+                <span className="text-[9px] text-zinc-600 font-mono uppercase">
+                    Select a stream to initiate
+                </span>
+            </div>
+
         </div>
       </div>
     </div>
@@ -341,69 +283,73 @@ const ResultCard = ({ result, onReset }) => {
 export default function App() {
   const [selectedMoods, setSelectedMoods] = useState([]);
   const [availableMoods, setAvailableMoods] = useState(MOOD_TYPES);
-  const [result, setResult] = useState(null);
+  const [results, setResults] = useState(null); // Now stores an array
   const [loading, setLoading] = useState(false);
-  const rightPanelRef = useRef(null);
+  const rightPanelRef = useRef(null); 
 
   const handleDrop = (mood) => {
-    setAvailableMoods((prev) => prev.filter((m) => m.id !== mood.id));
-    setSelectedMoods((prev) => [...prev, mood]);
+    setAvailableMoods(prev => prev.filter(m => m.id !== mood.id));
+    setSelectedMoods(prev => [...prev, mood]);
   };
 
   const removeMood = (moodId) => {
-    const mood = MOOD_TYPES.find((m) => m.id === moodId);
-    setSelectedMoods((prev) => prev.filter((m) => m.id !== moodId));
-    setAvailableMoods((prev) => [...prev, mood]);
+    const mood = MOOD_TYPES.find(m => m.id === moodId);
+    setSelectedMoods(prev => prev.filter(m => m.id !== moodId));
+    setAvailableMoods(prev => [...prev, mood]);
   };
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-    const moodLabels = selectedMoods.map((m) => m.label).join(', ');
+    const moodLabels = selectedMoods.map(m => m.label).join(', ');
     const prompt = `
       You are a high-tech minimalist music curator.
       User Input: [${moodLabels}].
-      Output JSON only:
+      
+      Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations based on these moods.
+      Each playlist should explore a slightly different facet of the mood combination (e.g., one rhythmic, one ambient, one lyrical).
+
+      Structure:
       {
-        "title": "Minimal Title (Max 3 words)",
-        "desc": "Direct, technical description.",
-        "analysis": "Abstract, sci-fi observation of data.",
-        "spotify_query": "Search query",
-        "image_keyword": "Abstract minimal dark tech"
+        "playlists": [
+            {
+                "title": "Minimal Title (Max 3 words)",
+                "desc": "Direct, technical description.",
+                "analysis": "Short sci-fi observation.",
+                "spotify_query": "Search query for Spotify",
+                "image_keyword": "Abstract minimal dark tech"
+            },
+            ... (2 more)
+        ]
       }
     `;
 
     const jsonString = await callGemini(prompt);
-
+    
     if (jsonString) {
       try {
-        const cleanedJson = jsonString
-          .replace(/```json/g, '')
-          .replace(/```/g, '')
-          .trim();
+        const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
         const data = JSON.parse(cleanedJson);
-        setResult({
-          title: data.title,
-          desc: data.desc,
-          analysis: data.analysis,
-          cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(
-            data.image_keyword
-          )},abstract,minimal`,
-          url: `https://open.spotify.com/search/${encodeURIComponent(
-            data.spotify_query
-          )}`,
-        });
+        
+        // Map the results to add covers and urls
+        const processedResults = data.playlists.map(p => ({
+            ...p,
+            cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`,
+            url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}`
+        }));
+
+        setResults(processedResults);
       } catch (e) {
-        console.error('Failed to parse AI response', e);
-        setResult(FALLBACK_PLAYLIST);
+        console.error("Failed to parse AI response", e);
+        setResults(FALLBACK_PLAYLISTS);
       }
     } else {
-      setResult(FALLBACK_PLAYLIST);
+      setResults(FALLBACK_PLAYLISTS);
     }
     setLoading(false);
   };
 
   const resetAll = () => {
-    setResult(null);
+    setResults(null);
     setSelectedMoods([]);
     setAvailableMoods(MOOD_TYPES);
   };
@@ -430,20 +376,24 @@ export default function App() {
         .animation-delay-4000 {
           animation-delay: 4s;
         }
+        /* Custom Scrollbar for results */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(163, 230, 53, 0.5);
+          border-radius: 4px;
+        }
       `}</style>
-
+      
       {/* --- SVG DEFS for Gradients --- */}
       <svg width="0" height="0" className="absolute">
         <defs>
-          {Object.values(GRADIENTS).map((g) => (
-            <linearGradient
-              key={g.id}
-              id={g.id}
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
+          {Object.values(GRADIENTS).map(g => (
+            <linearGradient key={g.id} id={g.id} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={g.start} stopOpacity="1" />
               <stop offset="100%" stopColor={g.end} stopOpacity="1" />
             </linearGradient>
@@ -453,157 +403,134 @@ export default function App() {
 
       {/* --- Ambient Living Background --- */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Using CSS-animated blobs instead of static glows */}
         <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-purple-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
         <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-lime-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-[10%] left-[30%] w-[600px] h-[600px] bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* --- Main Layout Grid --- */}
-      <div className="relative z-10 flex-1 grid grid-cols-2 h-screen w-full">
+      {/* --- Main Layout Grid (Responsive) --- */}
+      {/* Changed from grid-cols-2 to flex-col on mobile, grid on large screens */}
+      <div className="relative z-10 flex-1 flex flex-col lg:grid lg:grid-cols-2 min-h-screen w-full">
+
         {/* --- LEFT SECTION: Title & Context --- */}
-        <div className="relative flex flex-col justify-center px-6 md:px-12 lg:px-20 py-12 z-10">
-          <div className="absolute top-12 left-6 md:left-12 flex flex-col gap-1">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-              Category:
-            </span>
-            <span className="text-xs font-medium text-white tracking-wide">
-              Audio Identity
-            </span>
-          </div>
-
-          <div className="space-y-6 animate-in slide-in-from-left duration-700 z-10">
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-medium tracking-tight text-white mix-blend-difference leading-[0.9]">
-              Mood
-              <br />
-              Mixer
-            </h1>
-            <div className="h-px w-16 md:w-24 bg-lime-500"></div>
-            <p className="text-zinc-400 max-w-sm text-xs md:text-sm leading-relaxed">
-              Sonic fabrication based on emotional input vectors. Drag
-              components to the synthesis core on the right.
-            </p>
-          </div>
-
-          <div className="absolute bottom-12 left-6 md:left-12">
-            <div className="text-4xl md:text-6xl font-light text-zinc-800 select-none">
-              +2K
+        <div className="relative flex flex-col justify-center px-6 py-12 lg:px-20 lg:py-12 z-10 min-h-[40vh] lg:min-h-screen text-center lg:text-left">
+            
+            <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Category:</span>
+                <span className="text-xs font-medium text-white tracking-wide">Audio Identity</span>
             </div>
-          </div>
+
+            <div className="space-y-4 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-8 lg:mt-0 flex flex-col items-center lg:items-start">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-white mix-blend-difference leading-tight">
+                    Mood Mixer
+                </h1>
+                <div className="h-px w-16 md:w-24 bg-lime-500"></div>
+                <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
+                    Find the right music for your mood. Discover new playlists based on how you're feeling right now!
+                </p>
+            </div>
+            
+            <div className="hidden lg:block absolute bottom-12 left-12">
+                 <div className="text-6xl font-light text-zinc-800 select-none">
+                    +2K
+                </div>
+            </div>
         </div>
 
         {/* --- RIGHT SECTION: The Mixer & Orbit --- */}
-        <div
-          ref={rightPanelRef}
-          className="relative flex items-center justify-center z-20"
+        <div 
+            ref={rightPanelRef}
+            className="relative flex items-center justify-center z-20 flex-1 min-h-[50vh] lg:min-h-screen"
         >
-          {/* Meta Top Right */}
-          <div className="absolute top-12 right-6 md:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-              System
-            </span>
-            <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">
-              Online{' '}
-              <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
-            </span>
-          </div>
-
-          {/* The Core Container */}
-          <div className="relative z-10 animate-in zoom-in duration-1000 scale-75 md:scale-100">
-            {/* --- CONCENTRIC RINGS (Tighter) --- */}
-            <div
-              className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${
-                selectedMoods.length > 0 ? 'border-lime-500/10' : ''
-              }`}
-            ></div>
-            <div
-              className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${
-                selectedMoods.length > 0 ? 'border-lime-500/20' : ''
-              }`}
-            ></div>
-            <div
-              className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${
-                selectedMoods.length > 0 ? 'border-lime-500/30' : ''
-              }`}
-            ></div>
-            <div
-              className={`absolute inset-[10px] rounded-full border border-white/5 ${
-                selectedMoods.length > 0
-                  ? 'border-lime-500/10 bg-lime-500/[0.02]'
-                  : 'bg-white/[0.02]'
-              }`}
-            ></div>
-
-            {/* Heart / Drop Zone */}
-            <div className="relative w-48 h-48 flex items-center justify-center">
-              <div className="relative z-10">
-                {selectedMoods.length === 0 ? (
-                  <Heart
-                    strokeWidth={1}
-                    size={48}
-                    className="text-zinc-700 transition-colors duration-500"
-                  />
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    {selectedMoods.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => removeMood(m.id)}
-                        className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"
-                      >
-                        <m.icon size={16} />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+             {/* Meta Top Right */}
+             <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
+                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">System</span>
+                 <span className="text-xs font-medium text-lime-500 tracking-wide flex items-center justify-end gap-2">
+                    Online <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
+                 </span>
             </div>
 
-            {/* Action Button */}
-            <div className="absolute -bottom-24 left-0 right-0 text-center">
-              {selectedMoods.length > 0 ? (
-                <button
-                  onClick={generatePlaylistWithAI}
-                  disabled={loading}
-                  className="
-                                group inline-flex items-center justify-center gap-3 py-3
-                                text-xs font-mono uppercase tracking-[0.2em] text-lime-400
-                                hover:text-white transition-colors
+            {/* The Core Container */}
+            <div className="relative z-10 animate-in zoom-in duration-1000 scale-[0.65] md:scale-75 lg:scale-100">
+                 {/* --- CONCENTRIC RINGS (Tighter) --- */}
+                <div className={`absolute inset-[-40px] rounded-full border border-dashed border-white/5 animate-[spin_120s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/10' : ''}`}></div>
+                <div className={`absolute inset-[-20px] rounded-full border border-white/10 animate-[spin_80s_linear_reverse_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/20' : ''}`}></div>
+                <div className={`absolute inset-0 rounded-full border border-dashed border-white/10 animate-[spin_60s_linear_infinite] ${selectedMoods.length > 0 ? 'border-lime-500/30' : ''}`}></div>
+                <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
+
+                {/* Heart / Drop Zone */}
+                <div className="relative w-48 h-48 flex items-center justify-center">
+                    <div className="relative z-10">
+                        {selectedMoods.length === 0 ? (
+                            <Heart 
+                                strokeWidth={1} 
+                                size={48} 
+                                className="text-zinc-700 transition-colors duration-500" 
+                            />
+                        ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                                {selectedMoods.map(m => (
+                                    <button 
+                                        key={m.id}
+                                        onClick={() => removeMood(m.id)}
+                                        className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"
+                                    >
+                                        <m.icon size={16} />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                 {/* Action Button */}
+                 <div className="absolute -bottom-24 left-0 right-0 text-center w-[200%] -ml-[50%]">
+                     {selectedMoods.length > 0 ? (
+                        <button
+                            onClick={generatePlaylistWithAI}
+                            disabled={loading}
+                            className="
+                                group inline-flex items-center justify-center gap-3 py-3 px-6
+                                text-sm font-mono uppercase tracking-[0.2em] text-lime-400
+                                border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md
+                                hover:bg-lime-500 hover:text-black transition-all duration-300
                             "
-                >
-                  {loading ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <>
-                      <span>[ Process ]</span>
-                      <div className="h-px w-8 bg-current group-hover:w-12 transition-all"></div>
-                    </>
-                  )}
-                </button>
-              ) : (
-                <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-                  Awaiting Input
-                </span>
-              )}
+                        >
+                            {loading ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <>
+                                    <span>Set up your mood!</span>
+                                    <Sparkles size={14} className="group-hover:animate-pulse" />
+                                </>
+                            )}
+                        </button>
+                     ) : (
+                        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+                            Awaiting Input
+                        </span>
+                     )}
+                </div>
             </div>
-          </div>
 
-          {/* Orbiting Moods Layer */}
-          {availableMoods.map((mood, index) => (
-            <DraggableMood
-              key={mood.id}
-              index={index}
-              total={availableMoods.length}
-              mood={mood}
-              onDrop={handleDrop}
-              containerRef={rightPanelRef}
-            />
-          ))}
+            {/* Orbiting Moods Layer */}
+            {availableMoods.map((mood, index) => (
+                <DraggableMood 
+                    key={mood.id} 
+                    index={index}
+                    total={availableMoods.length}
+                    mood={mood} 
+                    onDrop={handleDrop} 
+                    containerRef={rightPanelRef}
+                />
+            ))}
         </div>
+
       </div>
 
       {/* Result Overlay */}
-      <ResultCard result={result} onReset={resetAll} />
+      <ResultCard results={results} onReset={resetAll} />
+
     </div>
   );
 }
