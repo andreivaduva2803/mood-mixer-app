@@ -49,66 +49,66 @@ const MOOD_TYPES = [
 
 const MOOD_PLAYLISTS = {
   happy: [
-    { title: "Sunny Vibes", desc: "Radiant energy for your best days.", analysis: "High serotonin levels detected.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "sunshine" },
-    { title: "Good Vibes Only", desc: "Positive frequencies aligned.", analysis: "Optimism parameters maximized.", spotify_id: "37i9dQZF1DXcBWIGoYBM5M", image_keyword: "happy" },
-    { title: "Mood Booster", desc: "Elevating your mental state.", analysis: "Dopamine release imminent.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "smile" },
-    { title: "Happy Hits", desc: "Instant serotonin boost.", analysis: "Joy levels critical.", spotify_id: "37i9dQZF1DXdPec7aLTmlC", image_keyword: "laugh" },
-    { title: "Feelin' Good", desc: "Nothing can stop you now.", analysis: "Positivity shield active.", spotify_id: "37i9dQZF1DX9XIFQuFvzM4", image_keyword: "joy" }
+    { title: "Happy Hits", desc: "Radiant energy for your best days.", analysis: "High serotonin levels detected.", spotify_id: "37i9dQZF1DXdPec7aLTmlC", image_keyword: "sunshine" },
+    { title: "Good Vibes", desc: "Positive frequencies aligned.", analysis: "Optimism parameters maximized.", spotify_id: "37i9dQZF1DXcBWIGoYBM5M", image_keyword: "happy" },
+    { title: "Feelin' Myself", desc: "Elevating your mental state.", analysis: "Dopamine release imminent.", spotify_id: "37i9dQZF1DX2RuoRVYAVp0", image_keyword: "smile" },
+    { title: "Mood Booster", desc: "Instant serotonin boost.", analysis: "Joy levels critical.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "laugh" },
+    { title: "Feel Good Indie", desc: "Nothing can stop you now.", analysis: "Positivity shield active.", spotify_id: "37i9dQZF1DX2sUQwD7tbmL", image_keyword: "joy" }
   ],
   sad: [
-    { title: "Melancholy Mix", desc: "Embracing the quiet moments.", analysis: "Low energy state acknowledged.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "rain" },
-    { title: "Sad Songs", desc: "For when you need to feel it all.", analysis: "Emotional resonance detected.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "sad" },
-    { title: "Life Sucks", desc: "It's okay to not be okay.", analysis: "Catharsis protocol initiated.", spotify_id: "37i9dQZF1DX3YSRoSdA634", image_keyword: "lonely" },
-    { title: "Broken Heart", desc: "Healing through sound.", analysis: "Heartbreak frequency detected.", spotify_id: "37i9dQZF1DXbrUpGvoi3TS", image_keyword: "broken" },
-    { title: "Alone Again", desc: "Solitude is a friend.", analysis: "Isolation parameters set.", spotify_id: "37i9dQZF1DX2pSTOxoPbx9", image_keyword: "alone" }
+    { title: "Life Sucks", desc: "Embracing the quiet moments.", analysis: "Low energy state acknowledged.", spotify_id: "37i9dQZF1DX3YSRoSdA634", image_keyword: "rain" },
+    { title: "Sad Indie", desc: "For when you need to feel it all.", analysis: "Emotional resonance detected.", spotify_id: "37i9dQZF1DX6aTaZa0K6VA", image_keyword: "sad" },
+    { title: "Sad Hour", desc: "It's okay to not be okay.", analysis: "Catharsis protocol initiated.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "lonely" },
+    { title: "Heartbreak Pop", desc: "Healing through sound.", analysis: "Heartbreak frequency detected.", spotify_id: "37i9dQZF1DXbrUpGvoi3TS", image_keyword: "broken" },
+    { title: "Melancholy", desc: "Solitude is a friend.", analysis: "Isolation parameters set.", spotify_id: "37i9dQZF1DWSiZVO2J6WeI", image_keyword: "alone" }
   ],
   energetic: [
     { title: "Beast Mode", desc: "Unleash your inner power.", analysis: "Adrenaline levels spiking.", spotify_id: "37i9dQZF1DX76Wlfdnj7AP", image_keyword: "energy" },
-    { title: "Workout Hype", desc: "Pushing past the limits.", analysis: "Physical output maximized.", spotify_id: "37i9dQZF1DX70RN3TfWWJh", image_keyword: "gym" },
-    { title: "Pumped Up", desc: "Ready for anything.", analysis: "Kinetic energy overflow.", spotify_id: "37i9dQZF1DX0HRj9P7NxeE", image_keyword: "running" },
-    { title: "Adrenaline Rush", desc: "Maximum velocity.", analysis: "Speed limits exceeded.", spotify_id: "37i9dQZF1DXe6bgV3TmZOL", image_keyword: "fast" },
-    { title: "Power Hour", desc: "Unstoppable force.", analysis: "Momentum critical.", spotify_id: "37i9dQZF1DXaRL7xbcDl7X", image_keyword: "power" }
+    { title: "Power Workout", desc: "Pushing past the limits.", analysis: "Physical output maximized.", spotify_id: "37i9dQZF1DX70RN3TfWWJh", image_keyword: "gym" },
+    { title: "Cardio", desc: "Ready for anything.", analysis: "Kinetic energy overflow.", spotify_id: "37i9dQZF1DX0HRj9P7NxeE", image_keyword: "running" },
+    { title: "Hype", desc: "Maximum velocity.", analysis: "Speed limits exceeded.", spotify_id: "37i9dQZF1DX8tZsk68tuDw", image_keyword: "fast" },
+    { title: "Adrenaline", desc: "Unstoppable force.", analysis: "Momentum critical.", spotify_id: "37i9dQZF1DX3WvGXE81bQA", image_keyword: "power" }
   ],
   angry: [
-    { title: "Rage Mode", desc: "Channeling the fire within.", analysis: "Aggression levels elevated.", spotify_id: "37i9dQZF1DXp3dCZPrq7Zz", image_keyword: "fire" },
-    { title: "Heavy Metal", desc: "Distorted reality.", analysis: "Sonic intensity critical.", spotify_id: "37i9dQZF1DX9qNs32fujYe", image_keyword: "metal" },
+    { title: "Rage Beats", desc: "Channeling the fire within.", analysis: "Aggression levels elevated.", spotify_id: "37i9dQZF1DX1tyCD9QhI3f", image_keyword: "fire" },
+    { title: "Rock Hard", desc: "Distorted reality.", analysis: "Sonic intensity critical.", spotify_id: "37i9dQZF1DWWOaP4H0wKPO", image_keyword: "metal" },
     { title: "Punk Essentials", desc: "Rebellion frequency.", analysis: "Non-compliance detected.", spotify_id: "37i9dQZF1DX3LDIBRoaCDQ", image_keyword: "punk" },
-    { title: "Metal Essentials", desc: "System overload.", analysis: "Volume maximized.", spotify_id: "37i9dQZF1DWWOaP4H0wKPO", image_keyword: "scream" },
-    { title: "Rock This", desc: "Mechanical aggression.", analysis: "System overload.", spotify_id: "37i9dQZF1DXCF3Ce8KLJ28", image_keyword: "industrial" }
+    { title: "Metal", desc: "System overload.", analysis: "Volume maximized.", spotify_id: "37i9dQZF1DX9qNs32fujYe", image_keyword: "scream" },
+    { title: "Rock Classics", desc: "Mechanical aggression.", analysis: "System overload.", spotify_id: "37i9dQZF1DWXRqgorJj26U", image_keyword: "industrial" }
   ],
   chill: [
     { title: "Chill Hits", desc: "Relax and unwind.", analysis: "Stress levels minimizing.", spotify_id: "37i9dQZF1DX4WYpdgoIcn6", image_keyword: "relax" },
-    { title: "Lo-Fi Beats", desc: "Background noise for peace.", analysis: "Brainwaves synchronizing.", spotify_id: "37i9dQZF1DX8Uebhn9wzrS", image_keyword: "lofi" },
-    { title: "Acoustic Chill", desc: "Stripped back and simple.", analysis: "Harmonic resonance stable.", spotify_id: "37i9dQZF1DX6z20IXmBjWI", image_keyword: "acoustic" },
+    { title: "Lush Lofi", desc: "Background noise for peace.", analysis: "Brainwaves synchronizing.", spotify_id: "37i9dQZF1DWWQRwui0ExPn", image_keyword: "lofi" },
+    { title: "Chill Vibes", desc: "Stripped back and simple.", analysis: "Harmonic resonance stable.", spotify_id: "37i9dQZF1DX889U0CL85jj", image_keyword: "acoustic" },
     { title: "Peaceful Piano", desc: "Keys to tranquility.", analysis: "Calmness restored.", spotify_id: "37i9dQZF1DX4sWSpwq3LiO", image_keyword: "piano" },
-    { title: "Stress Relief", desc: "Drifting away.", analysis: "Floating state achieved.", spotify_id: "37i9dQZF1DWXe9gFZP0gtP", image_keyword: "ambient" }
+    { title: "Ambient Relaxation", desc: "Drifting away.", analysis: "Floating state achieved.", spotify_id: "37i9dQZF1DWXe9gFZP0gtP", image_keyword: "ambient" }
   ],
   focused: [
     { title: "Deep Focus", desc: "Locked in and productive.", analysis: "Concentration absolute.", spotify_id: "37i9dQZF1DX5trt9i14X7j", image_keyword: "focus" },
-    { title: "Brain Food", desc: "Nourishment for the mind.", analysis: "Cognitive function optimized.", spotify_id: "37i9dQZF1DX83I5je4W4rP", image_keyword: "brain" },
+    { title: "Intense Studying", desc: "Nourishment for the mind.", analysis: "Cognitive function optimized.", spotify_id: "37i9dQZF1DX8NTLI2TtZa6", image_keyword: "brain" },
     { title: "Instrumental Study", desc: "Words are distractions.", analysis: "Verbal processing suspended.", spotify_id: "37i9dQZF1DX9sIqqvKsjG8", image_keyword: "study" },
-    { title: "Focus Flow", desc: "Productivity maximized.", analysis: "Task completion imminent.", spotify_id: "37i9dQZF1DXa2SPFyPhl9c", image_keyword: "work" },
-    { title: "Workday Lounge", desc: "Algorithms and beats.", analysis: "Logic gates open.", spotify_id: "37i9dQZF1DWT5lkChsPwkR", image_keyword: "code" }
+    { title: "Focus Flow", desc: "Productivity maximized.", analysis: "Task completion imminent.", spotify_id: "37i9dQZF1DWZeKCadgRdKQ", image_keyword: "work" },
+    { title: "Coding Mode", desc: "Algorithms and beats.", analysis: "Logic gates open.", spotify_id: "37i9dQZF1DX5trt9i14X7j", image_keyword: "code" }
   ],
   creative: [
-    { title: "Creative Focus", desc: "Unlocking the imagination.", analysis: "Lateral thinking engaged.", spotify_id: "37i9dQZF1DXa2SPFyPhl9c", image_keyword: "art" },
+    { title: "Creative Focus", desc: "Unlocking the imagination.", analysis: "Lateral thinking engaged.", spotify_id: "37i9dQZF1DX4dyzvuaRJ0n", image_keyword: "art" },
     { title: "Indie Pop", desc: "New sounds, new ideas.", analysis: "Novelty seeking active.", spotify_id: "37i9dQZF1DWWEcRhUVtL8n", image_keyword: "paint" },
-    { title: "Art Pop", desc: "Breaking the mold.", analysis: "Convention disregarded.", spotify_id: "37i9dQZF1DXbYM3nMM0oPk", image_keyword: "colors" },
-    { title: "Alternative 10s", desc: "Sound as texture.", analysis: "Pattern recognition disabled.", spotify_id: "37i9dQZF1DX873GaR8IKsB", image_keyword: "abstract" },
-    { title: "Modern Psychedelia", desc: "Aesthetic frequencies.", analysis: "Visual cortex stimulated.", spotify_id: "37i9dQZF1DX8gDIpdqp1XJ", image_keyword: "design" }
+    { title: "Indie Chillout", desc: "Breaking the mold.", analysis: "Convention disregarded.", spotify_id: "37i9dQZF1DX2UgsUIg75Vg", image_keyword: "colors" },
+    { title: "Alternative", desc: "Sound as texture.", analysis: "Pattern recognition disabled.", spotify_id: "37i9dQZF1DX873GaR8IKsB", image_keyword: "abstract" },
+    { title: "Psychedelic Rock", desc: "Aesthetic frequencies.", analysis: "Visual cortex stimulated.", spotify_id: "37i9dQZF1DX8gDIpdqp1XJ", image_keyword: "design" }
   ],
   nostalgic: [
     { title: "All Out 80s", desc: "Back to the future.", analysis: "Temporal displacement detected.", spotify_id: "37i9dQZF1DX4UtSsGT1Sbe", image_keyword: "retro" },
     { title: "All Out 90s", desc: "The golden era.", analysis: "Memory banks accessing.", spotify_id: "37i9dQZF1DXbTxeAdrVG2l", image_keyword: "90s" },
-    { title: "All Out 00s", desc: "Reliving the classics.", analysis: "Nostalgia circuits firing.", spotify_id: "37i9dQZF1DX4o1oenSJRJd", image_keyword: "tape" },
-    { title: "70s Road Trip", desc: "Millennium bug fixed.", analysis: "Digital past restored.", spotify_id: "37i9dQZF1DWTJ7xPn4f7NK", image_keyword: "cd" },
-    { title: "Timeless Love Songs", desc: "Timeless classics.", analysis: "Enduring quality confirmed.", spotify_id: "37i9dQZF1DX7rOY2tZUw1k", image_keyword: "vinyl" }
+    { title: "All Out 2000s", desc: "Reliving the classics.", analysis: "Nostalgia circuits firing.", spotify_id: "37i9dQZF1DX4o1oenSJRJd", image_keyword: "tape" },
+    { title: "Classic Rock", desc: "Millennium bug fixed.", analysis: "Digital past restored.", spotify_id: "37i9dQZF1DWXRqgorJj26U", image_keyword: "cd" },
+    { title: "Oldies", desc: "Timeless classics.", analysis: "Enduring quality confirmed.", spotify_id: "37i9dQZF1DWVV27DiNWxkR", image_keyword: "vinyl" }
   ],
   dreamy: [
-    { title: "Dreamy Vibes", desc: "Floating in the ether.", analysis: "Reality distortion field active.", spotify_id: "37i9dQZF1DX6z20IXmBjWI", image_keyword: "clouds" },
-    { title: "Shoegaze", desc: "Wall of sound.", analysis: "Auditory immersion complete.", spotify_id: "37i9dQZF1DX68H8ZujdnN7", image_keyword: "dream" },
+    { title: "Dreamy Vibes", desc: "Floating in the ether.", analysis: "Reality distortion field active.", spotify_id: "37i9dQZF1DX1n9whBbBKoL", image_keyword: "clouds" },
+    { title: "Ambient Chill", desc: "Wall of sound.", analysis: "Auditory immersion complete.", spotify_id: "37i9dQZF1DX3Ogo9kBvbfF", image_keyword: "dream" },
     { title: "Ethereal", desc: "Otherworldly sounds.", analysis: "Ascension imminent.", spotify_id: "37i9dQZF1DX82pCGH5USnM", image_keyword: "sky" },
-    { title: "Atmospheric Piano", desc: "Above the noise.", analysis: "Altitude sickness warning.", spotify_id: "37i9dQZF1DX7K31D69s4M1", image_keyword: "fly" },
+    { title: "Sleep", desc: "Above the noise.", analysis: "Altitude sickness warning.", spotify_id: "37i9dQZF1DWZd79rJ6a7lp", image_keyword: "fly" },
     { title: "Night Rain", desc: "Control your reality.", analysis: "Consciousness expanded.", spotify_id: "37i9dQZF1DXbcPC6Vvqudd", image_keyword: "sleep" }
   ]
 };
