@@ -124,8 +124,6 @@ const FALLBACK_PLAYLISTS = [
   }
 ];
 
-
-
 // --- Componenti ---
 
 const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
@@ -133,84 +131,104 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const elementRef = useRef(null);
   const animationRef = useRef();
-  const radiusRef = useRef(170); // Default desktop radius
+  const radiusRef = useRef(170);
+  const angleRef = useRef(0);
+  const lastTimeRef = useRef(null);
 
-  // Gestione dinamica del raggio per mobile
+  // Responsive radius
   useEffect(() => {
     const handleResize = () => {
-      // Raggio più piccolo su schermi stretti per evitare overflow
       radiusRef.current = window.innerWidth < 768 ? 150 : 170;
     };
-
-    handleResize(); // Set initial
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // JS-based Orbit Animation with Direct DOM Manipulation
+  // Initial angle per icon
   useEffect(() => {
-    const updateOrbit = () => {
-      if (!isDragging && elementRef.current) {
-        const time = Date.now() * 0.0004; // Increased speed
-        const angle = time + (index * (2 * Math.PI / total));
-        const x = Math.cos(angle) * radiusRef.current;
-        const y = Math.sin(angle) * radiusRef.current;
+    angleRef.current = (index * (2 * Math.PI)) / total;
+  }, [index, total]);
 
-        elementRef.current.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+  // Smooth orbit animation
+  useEffect(() => {
+    const tick = (now) => {
+      if (lastTimeRef.current == null) {
+        lastTimeRef.current = now;
       }
-      animationRef.current = requestAnimationFrame(updateOrbit);
+      const dt = (now - lastTimeRef.current) / 1000;
+      lastTimeRef.current = now;
+
+      if (!isDragging && elementRef.current) {
+        const speed = 0.4; // radians per second
+        angleRef.current += speed * dt;
+
+        const x = Math.cos(angleRef.current) * radiusRef.current;
+        const y = Math.sin(angleRef.current) * radiusRef.current;
+
+        elementRef.current.style.transform =
+          `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+      }
+
+      animationRef.current = requestAnimationFrame(tick);
     };
-    animationRef.current = requestAnimationFrame(updateOrbit);
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [index, total, isDragging]);
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [isDragging]);
+
+  const startDragFromCurrentAngle = () => {
+    const angle = angleRef.current;
+    const startX = Math.cos(angle) * radiusRef.current;
+    const startY = Math.sin(angle) * radiusRef.current;
+    setDragPosition({ x: startX, y: startY });
+  };
 
   const handlePointerDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // Calculate current position from the element's transform or calculate it manually
-    // Ideally we want to start dragging from where the orbit currently is
-    const time = Date.now() * 0.0004; // Match speed
-    const angle = time + (index * (2 * Math.PI / total));
-    const startX = Math.cos(angle) * radiusRef.current;
-    const startY = Math.sin(angle) * radiusRef.current;
-
-    setDragPosition({ x: startX, y: startY });
+    startDragFromCurrentAngle();
     setIsDragging(true);
-    e.target.setPointerCapture(e.pointerId);
+    if (e.pointerId != null) {
+      e.target.setPointerCapture(e.pointerId);
+    }
   };
 
   const handlePointerMove = (e) => {
-    if (!isDragging) return;
-    if (containerRef.current) {
-      const parentRect = containerRef.current.getBoundingClientRect();
-      const centerX = parentRect.left + parentRect.width / 2;
-      const centerY = parentRect.top + parentRect.height / 2;
+    if (!isDragging || !containerRef.current) return;
 
-      // Calcolo sicuro della posizione
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const parentRect = containerRef.current.getBoundingClientRect();
+    const centerX = parentRect.left + parentRect.width / 2;
+    const centerY = parentRect.top + parentRect.height / 2;
 
-      if (clientX && clientY) {
-        const newX = clientX - centerX;
-        const newY = clientY - centerY;
-        setDragPosition({ x: newX, y: newY });
+    const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+    const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+    if (clientX == null || clientY == null) return;
 
-        // Direct update during drag for responsiveness
-        if (elementRef.current) {
-          elementRef.current.style.transform = `translate(-50%, -50%) translate(${newX}px, ${newY}px)`;
-        }
-      }
+    const newX = clientX - centerX;
+    const newY = clientY - centerY;
+
+    setDragPosition({ x: newX, y: newY });
+
+    if (elementRef.current) {
+      elementRef.current.style.transform =
+        `translate(-50%, -50%) translate(${newX}px, ${newY}px)`;
     }
   };
 
   const handlePointerUp = (e) => {
     if (!isDragging) return;
     setIsDragging(false);
-    e.target.releasePointerCapture(e.pointerId);
+    if (e.pointerId != null) {
+      e.target.releasePointerCapture(e.pointerId);
+    }
 
-    // Distanza dal centro per il drop (Heart)
-    if (Math.sqrt(dragPosition.x ** 2 + dragPosition.y ** 2) < 120) {
+    const dist = Math.sqrt(
+      dragPosition.x ** 2 + dragPosition.y ** 2
+    );
+    if (dist < 120) {
       onDrop(mood);
     }
   };
@@ -221,24 +239,42 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      // Aggiunti listener touch espliciti per sicurezza su alcuni browser mobile
       onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
-      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition-[background-color,border-color,box-shadow] duration-300 ${isDragging ? 'z-50 scale-125 bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30'}`}
+      className={`group absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 
+        rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 
+        border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]
+        transition-[background-color,border-color,box-shadow,transform] duration-300
+        ${isDragging ? 'z-50 scale-125 bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30'}
+      `}
       style={{
-        touchAction: 'none', // Critico per evitare lo scroll durante il drag
+        touchAction: 'none',
         left: '50%',
         top: '50%',
-        // Initial transform will be set by the effect immediately
+        willChange: 'transform',
       }}
     >
-      {/* Colored Glow/Shadow Layer */}
-      <div className={`absolute inset-0 rounded-full opacity-60 transition-opacity duration-300 ${mood.glow} pointer-events-none`}></div>
+      {/* Glow */}
+      <div
+        className={`absolute inset-0 rounded-full opacity-60 transition-opacity duration-300 ${mood.glow} pointer-events-none`}
+      />
 
       <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none relative z-10">
-        <mood.icon className={`w-6 h-6 md:w-8 md:h-8 text-white/90 filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
-        <span className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isDragging ? 'opacity-100' : ''}`}>{mood.label}</span>
+        <mood.icon
+          className="w-6 h-6 md:w-8 md:h-8 text-white/90 drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]"
+          strokeWidth={1.5}
+          fill={`url(#${mood.gradId})`}
+          fillOpacity="0.4"
+        />
+        <span
+          className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md
+            opacity-0 group-hover:opacity-100 transition-opacity duration-300
+            ${isDragging ? 'opacity-100' : ''}
+          `}
+        >
+          {mood.label}
+        </span>
       </div>
     </div>
   );
@@ -246,6 +282,8 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
 const ResultCard = ({ results, onReset }) => {
   if (!results) return null;
+
+  const source = results[0]?._source || 'System';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500">
@@ -268,13 +306,15 @@ const ResultCard = ({ results, onReset }) => {
             Selected frequencies<br />
             <span className="text-zinc-500">aligned with your mood</span>
           </h2>
-          {/* Debug Badge */}
+          {/* Source Badge */}
           <div className="mt-4 flex justify-center">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border ${results._source === 'AI'
-              ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
-              : 'bg-zinc-800 border-zinc-700 text-zinc-500'
-              }`}>
-              Generated by {results._source || 'System'}
+            <span
+              className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border ${source === 'AI'
+                ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
+                : 'bg-zinc-800 border-zinc-700 text-zinc-500'
+                }`}
+            >
+              Generated by {source}
             </span>
           </div>
         </div>
@@ -325,103 +365,83 @@ export default function App() {
   };
 
   const generateLocalPlaylists = (moods) => {
-    // Collect all possible playlists from selected moods
+    // 1) Build candidate pool from mood → playlists (no duplicates)
+    const seenIds = new Set();
     let pool = [];
-    const usedTitles = new Set();
 
-    moods.forEach(m => {
-      if (MOOD_PLAYLISTS[m.id]) {
-        MOOD_PLAYLISTS[m.id].forEach(playlist => {
-          // Only add if we haven't used this title yet
-          if (!usedTitles.has(playlist.title)) {
-            pool.push(playlist);
-            usedTitles.add(playlist.title);
+    moods.forEach((m) => {
+      const list = MOOD_PLAYLISTS[m.id];
+      if (list) {
+        list.forEach((p) => {
+          if (!seenIds.has(p.spotify_id)) {
+            seenIds.add(p.spotify_id);
+            pool.push(p);
           }
         });
       }
     });
 
-    // If no specific playlists found or pool is empty, use fallback/random logic
-    if (pool.length === 0) {
+    // Fallback if no mood-specific playlists
+    if (!pool.length) {
       pool = MOOD_PLAYLISTS['chill'];
     }
 
-    // Get previously shown playlists from sessionStorage to avoid repetition
-    let previouslyShown = [];
+    // 2) Read shared history (AI + local)
+    let historyIds = [];
     try {
-      const stored = sessionStorage.getItem('moodmixer_shown_playlists');
+      const stored = sessionStorage.getItem('moodmixer_history_ids');
       if (stored) {
-        previouslyShown = JSON.parse(stored);
+        historyIds = JSON.parse(stored);
       }
     } catch (e) {
-      // Ignore storage errors
+      // ignore
     }
 
-    console.log('🎵 Pool size:', pool.length);
-    console.log('📜 Previously shown:', previouslyShown);
+    // 3) Prefer unseen playlists
+    const unseen = pool.filter(
+      (p) => !historyIds.includes(p.spotify_id)
+    );
+    const basePool = unseen.length >= 3 ? unseen : pool;
 
-    // Filter out previously shown playlists
-    const unseenPool = pool.filter(p => !previouslyShown.includes(p.spotify_id));
-
-    console.log('👀 Unseen pool size:', unseenPool.length);
-
-    // Use unseen pool if we have at least 3, otherwise reset and use full pool
-    let finalPool;
-    if (unseenPool.length >= 3) {
-      finalPool = unseenPool;
-      console.log('✅ Using unseen pool');
-    } else {
-      // Not enough unseen playlists, clear history and use full pool
-      finalPool = pool;
-      previouslyShown = []; // Reset history
-      console.log('🔄 Resetting history, using full pool');
-    }
-
-    // Proper Fisher-Yates shuffle for true randomness
-    const shuffled = [...finalPool];
+    // 4) Shuffle (Fisher–Yates)
+    const shuffled = [...basePool];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // Pick 3 unique playlists
-    const selected = shuffled.slice(0, Math.min(3, shuffled.length));
+    // 5) Pick up to 3
+    const selected = shuffled.slice(
+      0,
+      Math.min(3, shuffled.length)
+    );
 
-    // If we don't have 3, pad with random ones from the pool
-    while (selected.length < 3 && pool.length > 0) {
-      const randomIndex = Math.floor(Math.random() * pool.length);
-      const candidate = pool[randomIndex];
-      if (!selected.find(s => s.title === candidate.title)) {
-        selected.push(candidate);
-      }
-    }
-
-    console.log('🎯 Selected:', selected.map(p => p.title));
-
-    // Store the selected playlist IDs to avoid showing them again soon
+    // 6) Update shared history
+    const newIds = selected.map((p) => p.spotify_id);
+    const updatedHistory = [...newIds, ...historyIds].slice(0, 50);
     try {
-      const selectedIds = selected.map(p => p.spotify_id);
-      const newShownList = [...previouslyShown, ...selectedIds].slice(-15); // Keep last 15
-      sessionStorage.setItem('moodmixer_shown_playlists', JSON.stringify(newShownList));
-      console.log('💾 Saved to storage:', newShownList.length, 'playlists');
+      sessionStorage.setItem(
+        'moodmixer_history_ids',
+        JSON.stringify(updatedHistory)
+      );
     } catch (e) {
-      // Ignore storage errors
+      // ignore
     }
 
+    // 7) Decorate with cover + URL
     return selected.map((p, idx) => ({
       ...p,
-      cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal&sig=${Date.now()}-${idx}`,
-      url: `https://open.spotify.com/playlist/${p.spotify_id}`
+      cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(
+        p.image_keyword
+      )},abstract,minimal&sig=${Date.now()}-${idx}`,
+      url: `https://open.spotify.com/playlist/${p.spotify_id}`,
     }));
   };
 
-  const [generationSource, setGenerationSource] = useState(null); // 'AI' or 'Local'
-
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-    setGenerationSource(null);
 
-    // Retrieve history from sessionStorage
+    // Shared history (AI + local)
     let history = [];
     try {
       const stored = sessionStorage.getItem('moodmixer_history_ids');
@@ -429,47 +449,77 @@ export default function App() {
         history = JSON.parse(stored);
       }
     } catch (e) {
-      console.warn("Failed to load history", e);
+      console.warn('Failed to load history', e);
     }
 
-    console.log("🔍 Generating playlist. History size:", history.length);
-    console.log("🔑 API Key present:", !!apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE");
+    console.log('🔍 Generating playlist. History size:', history.length);
+    console.log(
+      '🔑 API Key present:',
+      !!apiKey && apiKey !== 'YOUR_GEMINI_API_KEY_HERE'
+    );
 
-    // Try AI first if key exists
-    if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
-      // Pass history as exclusion list
-      console.log("🤖 Attempting AI generation...");
-      const aiPlaylists = await generatePlaylistWithGemini(apiKey, selectedMoods, history);
+    // Build candidate pool from selected moods
+    const rawCandidates = selectedMoods.flatMap(
+      (m) => MOOD_PLAYLISTS[m.id] || []
+    );
+    const candidatePool = [
+      ...new Map(
+        rawCandidates.map((p) => [p.spotify_id, p])
+      ).values(),
+    ];
 
-      if (aiPlaylists) {
-        console.log("✅ AI Generation successful", aiPlaylists);
-        setResults(aiPlaylists.map(p => ({
-          ...p,
-          url: `https://open.spotify.com/playlist/${p.spotify_id}`,
-          _source: 'AI'
-        })));
-        setGenerationSource('AI');
+    // Try AI first
+    if (
+      apiKey &&
+      apiKey !== 'YOUR_GEMINI_API_KEY_HERE' &&
+      candidatePool.length
+    ) {
+      console.log('🤖 Attempting AI generation...');
+      const aiPlaylists = await generatePlaylistWithGemini(
+        apiKey,
+        selectedMoods,
+        history,
+        candidatePool
+      );
 
-        // Update history with new IDs
-        const newIds = aiPlaylists.map(p => p.spotify_id);
-        const updatedHistory = [...newIds, ...history].slice(0, 50); // Keep last 50
-        sessionStorage.setItem('moodmixer_history_ids', JSON.stringify(updatedHistory));
+      if (aiPlaylists && aiPlaylists.length) {
+        console.log('✅ AI Generation successful', aiPlaylists);
+
+        setResults(
+          aiPlaylists.map((p) => ({
+            ...p,
+            url: `https://open.spotify.com/playlist/${p.spotify_id}`,
+            _source: 'AI',
+          }))
+        );
+
+        // Update shared history
+        const newIds = aiPlaylists.map((p) => p.spotify_id);
+        const updatedHistory = [...newIds, ...history].slice(
+          0,
+          50
+        );
+        sessionStorage.setItem(
+          'moodmixer_history_ids',
+          JSON.stringify(updatedHistory)
+        );
 
         setLoading(false);
         return;
-      } else {
-        console.error("❌ AI Generation failed or returned null");
       }
+
+      console.error(
+        '❌ AI Generation failed or returned null, using local.'
+      );
     } else {
-      console.warn("⚠️ No API Key found, skipping AI");
+      console.warn('⚠️ No API Key found or no candidates, skipping AI');
     }
 
     // Fallback to local generation
-    console.log("🏠 Falling back to local generation");
-    await new Promise(r => setTimeout(r, 1500)); // Fake delay for "processing" feel
+    console.log('🏠 Falling back to local generation');
+    await new Promise((r) => setTimeout(r, 800));
     const localResults = generateLocalPlaylists(selectedMoods);
-    setResults(localResults.map(p => ({ ...p, _source: 'Local' })));
-    setGenerationSource('Local');
+    setResults(localResults.map((p) => ({ ...p, _source: 'Local' })));
     setLoading(false);
   };
 
@@ -542,12 +592,52 @@ export default function App() {
             <div className={`absolute inset-[10px] rounded-full border border-white/5 ${selectedMoods.length > 0 ? 'border-lime-500/10 bg-lime-500/[0.02]' : 'bg-white/[0.02]'}`}></div>
             <div className="relative w-64 h-64 lg:w-48 lg:h-48 flex items-center justify-center">
               <div className="relative z-10">
-                {selectedMoods.length === 0 ? (<Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />) : (<div className="grid grid-cols-2 gap-2">{selectedMoods.map(m => (<button key={m.id} onClick={() => removeMood(m.id)} className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"><m.icon size={16} /></button>))}</div>)}
+                {selectedMoods.length === 0 ? (
+                  <Heart strokeWidth={1} size={48} className="text-zinc-700 transition-colors duration-500" />
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedMoods.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => removeMood(m.id)}
+                        className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lime-400 hover:border-red-500 hover:text-red-500 transition-all shadow-lg"
+                      >
+                        <m.icon size={16} />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-            {availableMoods.map((mood, index) => (<DraggableMood key={mood.id} index={index} total={availableMoods.length} mood={mood} onDrop={handleDrop} containerRef={rightPanelRef} />))}
+            {availableMoods.map((mood, index) => (
+              <DraggableMood
+                key={mood.id}
+                index={index}
+                total={availableMoods.length}
+                mood={mood}
+                onDrop={handleDrop}
+                containerRef={rightPanelRef}
+              />
+            ))}
             <div className="absolute -bottom-32 lg:-bottom-32 left-0 right-0 text-center w-[200%] -ml-[50%]">
-              {selectedMoods.length > 0 ? (<button onClick={generatePlaylistWithAI} disabled={loading} className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300">{loading ? (<Loader2 size={16} className="animate-spin" />) : (<><span>Set up your mood!</span><Sparkles size={14} className="group-hover:animate-pulse" /></>)}</button>) : (<span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>)}
+              {selectedMoods.length > 0 ? (
+                <button
+                  onClick={generatePlaylistWithAI}
+                  disabled={loading}
+                  className="group inline-flex items-center justify-center gap-3 py-3 px-6 text-sm font-mono uppercase tracking-[0.2em] text-lime-400 border border-lime-500/30 rounded-full bg-lime-500/5 backdrop-blur-md hover:bg-lime-500 hover:text-black transition-all duration-300"
+                >
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <>
+                      <span>Set up your mood!</span>
+                      <Sparkles size={14} className="group-hover:animate-pulse" />
+                    </>
+                  )}
+                </button>
+              ) : (
+                <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Awaiting Input</span>
+              )}
             </div>
           </div>
         </div>

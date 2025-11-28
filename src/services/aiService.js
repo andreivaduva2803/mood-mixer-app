@@ -1,110 +1,118 @@
+// src/services/aiService.js
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-
-/**
- * Calls the Gemini API to generate playlist recommendations based on moods.
- * @param {string} apiKey - The Gemini API key.
- * @param {Array} selectedMoods - Array of selected mood objects.
- * @param {Array} exclusionList - Array of Spotify IDs to exclude.
- * @returns {Promise<Array|null>} - A promise that resolves to an array of 3 playlist objects or null if failed.
- */
-export async function generatePlaylistWithGemini(apiKey, selectedMoods, exclusionList = []) {
-    if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-        console.warn("Gemini API key is missing or invalid.");
+export async function generatePlaylistWithGemini(
+    apiKey,
+    selectedMoods,
+    historyIds = [],
+    candidates = []
+) {
+    if (!apiKey || !selectedMoods.length || !candidates.length) {
         return null;
     }
 
-    const moodLabels = selectedMoods.map(m => m.label).join(', ');
-    const timestamp = Date.now();
-    const randomSeed = Math.floor(Math.random() * 10000);
+    // 1) Ensure candidates are unique by spotify_id
+    const uniqueCandidatesMap = new Map();
+    candidates.forEach((p) => {
+        if (p.spotify_id && !uniqueCandidatesMap.has(p.spotify_id)) {
+            uniqueCandidatesMap.set(p.spotify_id, p);
+        }
+    });
+    const uniqueCandidates = Array.from(uniqueCandidatesMap.values());
 
-    // Randomize the "persona" to force different curation styles
-    const personas = [
-        "Mainstream Radio DJ (Focus on hits)",
-        "Underground Music Blogger (Focus on hidden gems)",
-        "Music Historian (Focus on classics and deep cuts)",
-        "Festival Curator (Focus on high energy and vibes)",
-        "Chillout Lounge Resident (Focus on atmosphere)",
-        "Experimental Audiophile (Focus on texture and sound design)"
-    ];
-    const selectedPersona = personas[Math.floor(Math.random() * personas.length)];
+    // 2) Prefer playlists not used yet
+    const unseen = uniqueCandidates.filter(
+        (p) => !historyIds.includes(p.spotify_id)
+    );
+    const pool = unseen.length >= 3 ? unseen : uniqueCandidates;
 
-    const prompt = `You are an expert music curator acting as a: ${selectedPersona}.
-  
-User's mood selection: [${moodLabels}]
-Timestamp: ${timestamp}
-Variation seed: ${randomSeed}
+    const moodLabels = selectedMoods
+        .map((m) => m.label || m.id)
+        .join(', ');
 
-IMPORTANT INSTRUCTIONS:
-1. Generate 3 COMPLETELY DIFFERENT Spotify playlist recommendations that match these moods.
-2. Each recommendation MUST be a REAL, EXISTING Spotify editorial playlist.
-3. Use ONLY verified Spotify playlist IDs (format: 37i9dQZF1DX...).
-4. Ensure maximum variety - never repeat the same playlists.
-5. Consider the mood combination to create a unique blend.
+    const prompt = `
+You are an assistant that selects Spotify playlists from a fixed catalog.
 
-EXCLUSION LIST (DO NOT USE THESE IDs):
-${JSON.stringify(exclusionList)}
+User mood combination: ${moodLabels}
 
-Output ONLY valid JSON in this exact format:
-{
-  "playlists": [
-    {
-      "title": "Playlist Name",
-      "desc": "Brief description matching the mood",
-      "analysis": "Why this fits the user's mood selection",
-      "spotify_id": "37i9dQZF1DX..."
-    }
-  ]
-}
+Here is the catalog as a JSON array:
+${JSON.stringify(pool)}
 
-Do not include any markdown formatting or extra text, just the JSON.`;
+Rules:
+- Pick 3 playlists from this catalog that best match the mood combination.
+- DO NOT invent playlists or spotify_id values. Only use items from the catalog.
+- Prefer playlists whose spotify_id is NOT in this list of previously used IDs:
+  ${JSON.stringify(historyIds)}
+- Return ONLY a JSON array of playlist objects (no explanation text, no markdown fences).
+`;
 
     try {
-        const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.9, // High temperature for variety
-                    response_mime_type: "application/json"
-                }
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('Gemini API Error:', response.status, response.statusText, errorData);
-            throw new Error(`Gemini API request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!candidate) {
-            console.error('Gemini API returned no candidates.');
-            return null;
-        }
-
-        try {
-            // Clean up potential markdown code blocks if the model ignores the mime_type or instruction
-            const cleanedJson = candidate.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsedData = JSON.parse(cleanedJson);
-
-            if (parsedData.playlists && Array.isArray(parsedData.playlists) && parsedData.playlists.length >= 3) {
-                // Return the first 3 playlists
-                return parsedData.playlists.slice(0, 3);
-            } else {
-                console.error('Gemini API returned invalid data structure:', parsedData);
-                return null;
+        const res = await fetch(
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey, // for production, move to a backend
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: 'user',
+                            parts: [{ text: prompt }],
+                        },
+                    ],
+                    generationConfig: {
+                        temperature: 0.9,
+                        maxOutputTokens: 512,
+                    },
+                }),
             }
-        } catch (parseError) {
-            console.error('Error parsing Gemini response:', parseError, candidate);
+        );
+
+        if (!res.ok) {
+            console.error('Gemini API error', await res.text());
             return null;
         }
 
-    } catch (error) {
-        console.error('Gemini Service Error:', error);
+        const data = await res.json();
+        const text =
+            data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+        if (!text) return null;
+
+        // Strip ```json ... ``` if present
+        const cleaned = text.trim().replace(/^```json\s*|\s*```$/g, '');
+        let parsed;
+        try {
+            parsed = JSON.parse(cleaned);
+        } catch (err) {
+            console.error('Failed to parse Gemini JSON', err, cleaned);
+            return null;
+        }
+
+        if (!Array.isArray(parsed)) return null;
+
+        // 3) Validate: keep only playlists that actually exist in the pool
+        const poolById = new Map(pool.map((p) => [p.spotify_id, p]));
+
+        const final = parsed
+            .map((p) => {
+                const base = poolById.get(p.spotify_id);
+                if (!base) return null;
+                return {
+                    ...base,
+                    title: p.title || base.title,
+                    desc: p.desc || base.desc,
+                    analysis: p.analysis || base.analysis,
+                };
+            })
+            .filter(Boolean)
+            .slice(0, 3);
+
+        if (!final.length) return null;
+        return final;
+    } catch (err) {
+        console.error('Gemini request failed', err);
         return null;
     }
 }
