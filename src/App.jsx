@@ -13,8 +13,7 @@ import {
   Brain,
   Lightbulb,
   CassetteTape,
-  CloudFog,
-  Activity
+  CloudFog
 } from 'lucide-react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -320,19 +319,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const rightPanelRef = useRef(null);
 
-  // Contatore locale persistente con base history
-  const BASE_COUNT = 15420; // Base "history" count
-  const [globalCount, setGlobalCount] = useState(() => {
-    // Inizializza leggendo dal localStorage o usa un default di 0
-    try {
-      const saved = localStorage.getItem('mood_mixer_count');
-      const localCount = saved ? parseInt(saved, 10) : 0;
-      return BASE_COUNT + localCount;
-    } catch {
-      return BASE_COUNT;
-    }
-  });
-
   const handleDrop = (mood) => {
     setAvailableMoods(prev => prev.filter(m => m.id !== mood.id));
     setSelectedMoods(prev => [...prev, mood]);
@@ -394,11 +380,6 @@ export default function App() {
 
   const generatePlaylistWithAI = async () => {
     setLoading(true);
-
-    // Aggiorna contatore locale
-    const newCount = globalCount + 1;
-    setGlobalCount(newCount);
-    localStorage.setItem('mood_mixer_count', newCount.toString());
 
     // Try AI first if key exists
     if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
@@ -469,11 +450,19 @@ export default function App() {
               <span className="text-zinc-500">aligned with your mood</span>
             </h1>
           </div>
-          <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
-            <div className="flex items-center gap-2 text-lime-500/50 uppercase tracking-widest text-[10px] font-mono"><Activity size={12} className="animate-pulse" /> Global Moods Mixed</div>
-            <div className="text-6xl font-light text-zinc-800 select-none tabular-nums animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              {globalCount.toLocaleString()}
-            </div>
+          <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2 max-w-md">
+            <p className="text-sm text-zinc-500 leading-relaxed italic">
+              "One good thing about music, when it hits you, you feel no pain."
+            </p>
+            <p className="text-xs text-zinc-600">
+              Do you like this project?{' '}
+              <a
+                href="mailto:andrea.vaduva@gmail.com?subject=MoodMixer - Let's talk about music"
+                className="text-lime-500/70 hover:text-lime-400 transition-colors underline"
+              >
+                let's talk about music.
+              </a>
+            </p>
           </div>
         </div>
         <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-6 lg:pb-0 -mt-10 lg:mt-0">
