@@ -463,7 +463,7 @@ export default function App() {
         <div className="relative flex flex-col justify-center px-6 py-2 lg:px-20 lg:py-12 z-10 min-h-0 lg:min-h-screen text-center lg:text-left">
           <div className="absolute top-6 left-6 lg:top-12 lg:left-12 flex flex-col gap-1 text-left">
           </div>
-          <div className="space-y-2 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-2 lg:mt-0 flex flex-col items-center lg:items-start">
+          <div className="space-y-2 lg:space-y-6 animate-in slide-in-from-left duration-700 z-10 mt-20 lg:mt-0 flex flex-col items-center lg:items-start">
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif tracking-tight text-white leading-tight">
               Selected frequencies<br />
               <span className="text-zinc-500">aligned with your mood</span>
@@ -476,7 +476,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-6 lg:pb-0">
+        <div ref={rightPanelRef} className="relative flex items-center justify-center z-20 flex-grow lg:flex-1 lg:min-h-screen pb-6 lg:pb-0 -mt-10 lg:mt-0">
           <div className="absolute top-6 right-6 lg:top-12 lg:right-12 flex flex-col gap-1 text-right z-30 pointer-events-none">
           </div>
           <div className="relative z-10 animate-in zoom-in duration-1000 scale-100 flex items-center justify-center">
