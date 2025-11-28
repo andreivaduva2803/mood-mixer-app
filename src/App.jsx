@@ -406,15 +406,33 @@ export default function App() {
   const generatePlaylistWithAI = async () => {
     setLoading(true);
 
+    // Retrieve history from sessionStorage
+    let history = [];
+    try {
+      const stored = sessionStorage.getItem('moodmixer_history_ids');
+      if (stored) {
+        history = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn("Failed to load history", e);
+    }
+
     // Try AI first if key exists
     if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
-      const aiPlaylists = await generatePlaylistWithGemini(apiKey, selectedMoods);
+      // Pass history as exclusion list
+      const aiPlaylists = await generatePlaylistWithGemini(apiKey, selectedMoods, history);
 
       if (aiPlaylists) {
         setResults(aiPlaylists.map(p => ({
           ...p,
           url: `https://open.spotify.com/playlist/${p.spotify_id}`
         })));
+
+        // Update history with new IDs
+        const newIds = aiPlaylists.map(p => p.spotify_id);
+        const updatedHistory = [...newIds, ...history].slice(0, 50); // Keep last 50
+        sessionStorage.setItem('moodmixer_history_ids', JSON.stringify(updatedHistory));
+
         setLoading(false);
         return;
       }

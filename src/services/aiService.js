@@ -5,9 +5,10 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
  * Calls the Gemini API to generate playlist recommendations based on moods.
  * @param {string} apiKey - The Gemini API key.
  * @param {Array} selectedMoods - Array of selected mood objects.
+ * @param {Array} exclusionList - Array of Spotify IDs to exclude.
  * @returns {Promise<Array|null>} - A promise that resolves to an array of 3 playlist objects or null if failed.
  */
-export async function generatePlaylistWithGemini(apiKey, selectedMoods) {
+export async function generatePlaylistWithGemini(apiKey, selectedMoods, exclusionList = []) {
     if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
         console.warn("Gemini API key is missing or invalid.");
         return null;
@@ -17,8 +18,19 @@ export async function generatePlaylistWithGemini(apiKey, selectedMoods) {
     const timestamp = Date.now();
     const randomSeed = Math.floor(Math.random() * 10000);
 
-    const prompt = `You are an expert music curator with deep knowledge of Spotify's catalog. 
+    // Randomize the "persona" to force different curation styles
+    const personas = [
+        "Mainstream Radio DJ (Focus on hits)",
+        "Underground Music Blogger (Focus on hidden gems)",
+        "Music Historian (Focus on classics and deep cuts)",
+        "Festival Curator (Focus on high energy and vibes)",
+        "Chillout Lounge Resident (Focus on atmosphere)",
+        "Experimental Audiophile (Focus on texture and sound design)"
+    ];
+    const selectedPersona = personas[Math.floor(Math.random() * personas.length)];
 
+    const prompt = `You are an expert music curator acting as a: ${selectedPersona}.
+  
 User's mood selection: [${moodLabels}]
 Timestamp: ${timestamp}
 Variation seed: ${randomSeed}
@@ -29,6 +41,9 @@ IMPORTANT INSTRUCTIONS:
 3. Use ONLY verified Spotify playlist IDs (format: 37i9dQZF1DX...).
 4. Ensure maximum variety - never repeat the same playlists.
 5. Consider the mood combination to create a unique blend.
+
+EXCLUSION LIST (DO NOT USE THESE IDs):
+${JSON.stringify(exclusionList)}
 
 Output ONLY valid JSON in this exact format:
 {
