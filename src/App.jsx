@@ -19,7 +19,8 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // --- CONFIGURAZIONE ---
 
-const apiKey = ""; // API Key will be injected by the environment
+// Get API key from Vercel environment variable
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
 // --- DATI ---
 
@@ -384,15 +385,49 @@ export default function App() {
     // Try AI first if key exists
     if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
       const moodLabels = selectedMoods.map(m => m.label).join(', ');
-      const prompt = `You are a high-tech minimalist music curator. User Input: [${moodLabels}]. Output a JSON object with a "playlists" array containing exactly 3 DISTINCT playlist recommendations. Structure: { "playlists": [ { "title": "...", "desc": "...", "analysis": "...", "spotify_query": "...", "image_keyword": "..." }, ... ] }`;
+      const timestamp = Date.now();
+      const randomSeed = Math.floor(Math.random() * 10000);
+
+      const prompt = `You are an expert music curator with deep knowledge of Spotify's catalog. 
+
+User's mood selection: [${moodLabels}]
+Timestamp: ${timestamp}
+Variation seed: ${randomSeed}
+
+IMPORTANT INSTRUCTIONS:
+1. Generate 3 COMPLETELY DIFFERENT Spotify playlist recommendations that match these moods
+2. Each recommendation MUST be a REAL, EXISTING Spotify editorial playlist
+3. Use ONLY verified Spotify playlist IDs (format: 37i9dQZF1DX...)
+4. Ensure maximum variety - never repeat the same playlists
+5. Consider the mood combination to create a unique blend
+
+Output ONLY valid JSON in this exact format:
+{
+  "playlists": [
+    {
+      "title": "Playlist Name",
+      "desc": "Brief description matching the mood",
+      "analysis": "Why this fits the user's mood selection",
+      "spotify_id": "37i9dQZF1DX..."
+    }
+  ]
+}
+
+Do not include any markdown formatting or extra text, just the JSON.`;
+
       const jsonString = await callGemini(prompt);
       if (jsonString) {
         try {
           const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
           const data = JSON.parse(cleanedJson);
-          setResults(data.playlists.map(p => ({ ...p, cover: `https://source.unsplash.com/500x500/?${encodeURIComponent(p.image_keyword)},abstract,minimal`, url: `https://open.spotify.com/search/${encodeURIComponent(p.spotify_query)}` })));
-          setLoading(false);
-          return;
+          if (data.playlists && data.playlists.length === 3) {
+            setResults(data.playlists.map(p => ({
+              ...p,
+              url: `https://open.spotify.com/playlist/${p.spotify_id}`
+            })));
+            setLoading(false);
+            return;
+          }
         } catch (e) {
           console.error("AI Parse Error, falling back to local", e);
         }
