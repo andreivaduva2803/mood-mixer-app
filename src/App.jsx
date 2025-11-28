@@ -450,11 +450,11 @@ export default function App() {
               <span className="text-zinc-500">aligned with your mood</span>
             </h1>
           </div>
-          <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2 max-w-md">
-            <p className="text-sm text-zinc-500 leading-relaxed italic">
+          <div className="relative lg:absolute lg:bottom-12 lg:left-12 flex flex-col gap-1 lg:gap-2 max-w-md mt-4 lg:mt-0 px-6 lg:px-0 text-center lg:text-left">
+            <p className="text-[10px] lg:text-sm text-zinc-500 leading-relaxed italic">
               "One good thing about music, when it hits you, you feel no pain."
             </p>
-            <p className="text-xs text-zinc-600">
+            <p className="text-[9px] lg:text-xs text-zinc-600">
               Do you like this project?{' '}
               <a
                 href="mailto:andrea.vaduva@gmail.com?subject=MoodMixer - Let's talk about music"
