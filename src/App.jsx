@@ -53,14 +53,14 @@ const MOOD_PLAYLISTS = {
     { title: "Good Vibes", desc: "Positive frequencies aligned.", analysis: "Optimism parameters maximized.", spotify_id: "37i9dQZF1DXcBWIGoYBM5M", image_keyword: "happy" },
     { title: "Mood Booster", desc: "Elevating your mental state.", analysis: "Dopamine release imminent.", spotify_id: "37i9dQZF1DX3rxVfibe1L0", image_keyword: "smile" },
     { title: "Feelin' Good", desc: "Instant serotonin boost.", analysis: "Joy levels critical.", spotify_id: "37i9dQZF1DX9XIFQuFvzM4", image_keyword: "laugh" },
-    { title: "Feel Good Piano", desc: "Nothing can stop you now.", analysis: "Positivity shield active.", spotify_id: "37i9dQZF1DX7K31D69s4M1", image_keyword: "joy" }
+    { title: "Sing-Along", desc: "Nothing can stop you now.", analysis: "Positivity shield active.", spotify_id: "37i9dQZF1DWSqmBTqDMa50", image_keyword: "joy" }
   ],
   sad: [
     { title: "Life Sucks", desc: "Embracing the quiet moments.", analysis: "Low energy state acknowledged.", spotify_id: "37i9dQZF1DX3YSRoSdA634", image_keyword: "rain" },
     { title: "Sad Hour", desc: "For when you need to feel it all.", analysis: "Emotional resonance detected.", spotify_id: "37i9dQZF1DX7qK8ma5wgG1", image_keyword: "sad" },
     { title: "Sad Indie", desc: "It's okay to not be okay.", analysis: "Catharsis protocol initiated.", spotify_id: "37i9dQZF1DX6aTaZa0K6VA", image_keyword: "lonely" },
     { title: "Sad Songs", desc: "Healing through sound.", analysis: "Heartbreak frequency detected.", spotify_id: "37i9dQZF1DX1pWlTj4VQKP", image_keyword: "broken" },
-    { title: "Tear Drops", desc: "Solitude is a friend.", analysis: "Isolation parameters set.", spotify_id: "37i9dQZF1DWVrtsSlLKzro", image_keyword: "alone" }
+    { title: "Rainy Day", desc: "Solitude is a friend.", analysis: "Isolation parameters set.", spotify_id: "37i9dQZF1DX2UgsUIg75Vg", image_keyword: "alone" }
   ],
   energetic: [
     { title: "Beast Mode", desc: "Unleash your inner power.", analysis: "Adrenaline levels spiking.", spotify_id: "37i9dQZF1DX76Wlfdnj7AP", image_keyword: "energy" },
@@ -93,16 +93,16 @@ const MOOD_PLAYLISTS = {
   creative: [
     { title: "Creative Focus", desc: "Unlocking the imagination.", analysis: "Lateral thinking engaged.", spotify_id: "37i9dQZF1DX4dyzvuaRJ0n", image_keyword: "art" },
     { title: "Indie Pop", desc: "New sounds, new ideas.", analysis: "Novelty seeking active.", spotify_id: "37i9dQZF1DWWEcRhUVtL8n", image_keyword: "paint" },
-    { title: "Indie Chillout", desc: "Breaking the mold.", analysis: "Convention disregarded.", spotify_id: "37i9dQZF1DX2UgsUIg75Vg", image_keyword: "colors" },
-    { title: "Alternative", desc: "Sound as texture.", analysis: "Pattern recognition disabled.", spotify_id: "37i9dQZF1DX873GaR8IKsB", image_keyword: "abstract" },
-    { title: "Indie Rock", desc: "Aesthetic frequencies.", analysis: "Visual cortex stimulated.", spotify_id: "37i9dQZF1DX2Nc3B70tvx0", image_keyword: "design" }
+    { title: "Alternative", desc: "Breaking the mold.", analysis: "Convention disregarded.", spotify_id: "37i9dQZF1DX873GaR8IKsB", image_keyword: "colors" },
+    { title: "Indie Rock", desc: "Sound as texture.", analysis: "Pattern recognition disabled.", spotify_id: "37i9dQZF1DX2Nc3B70tvx0", image_keyword: "abstract" },
+    { title: "Modern Rock", desc: "Aesthetic frequencies.", analysis: "Visual cortex stimulated.", spotify_id: "37i9dQZF1DWXRqgorJj26U", image_keyword: "design" }
   ],
   nostalgic: [
     { title: "All Out 80s", desc: "Back to the future.", analysis: "Temporal displacement detected.", spotify_id: "37i9dQZF1DX4UtSsGT1Sbe", image_keyword: "retro" },
     { title: "All Out 90s", desc: "The golden era.", analysis: "Memory banks accessing.", spotify_id: "37i9dQZF1DXbTxeAdrVG2l", image_keyword: "90s" },
     { title: "All Out 2000s", desc: "Reliving the classics.", analysis: "Nostalgia circuits firing.", spotify_id: "37i9dQZF1DX4o1oenSJRJd", image_keyword: "tape" },
-    { title: "Classic Rock", desc: "Millennium bug fixed.", analysis: "Digital past restored.", spotify_id: "37i9dQZF1DWXRqgorJj26U", image_keyword: "cd" },
-    { title: "Classic Hits", desc: "Timeless classics.", analysis: "Enduring quality confirmed.", spotify_id: "37i9dQZF1DWXti3N4Wp5xy", image_keyword: "vinyl" }
+    { title: "Classic Rock Drive", desc: "Millennium bug fixed.", analysis: "Digital past restored.", spotify_id: "37i9dQZF1DWXRqgorJj26U", image_keyword: "cd" },
+    { title: "Throwback Party", desc: "Timeless classics.", analysis: "Enduring quality confirmed.", spotify_id: "37i9dQZF1DX1lVhptIYRda", image_keyword: "vinyl" }
   ],
   dreamy: [
     { title: "Dreamy Vibes", desc: "Floating in the ether.", analysis: "Reality distortion field active.", spotify_id: "37i9dQZF1DX1n9whBbBKoL", image_keyword: "clouds" },
@@ -353,10 +353,26 @@ export default function App() {
       pool = MOOD_PLAYLISTS['chill'];
     }
 
-    // Fisher-Yates shuffle for better randomization
-    const shuffled = [...pool];
+    // Get previously shown playlists from sessionStorage to avoid repetition
+    let previouslyShown = [];
+    try {
+      const stored = sessionStorage.getItem('moodmixer_shown_playlists');
+      if (stored) {
+        previouslyShown = JSON.parse(stored);
+      }
+    } catch (e) {
+      // Ignore storage errors
+    }
+
+    // Filter out previously shown playlists if we have enough alternatives
+    const unseenPool = pool.filter(p => !previouslyShown.includes(p.spotify_id));
+    const finalPool = unseenPool.length >= 3 ? unseenPool : pool;
+
+    // Enhanced Fisher-Yates shuffle with time-based seed for more randomness
+    const shuffled = [...finalPool];
+    const seed = Date.now() + Math.random() * 10000;
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor((Math.random() + (seed % (i + 1)) / 1000) % 1) * (i + 1);
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
@@ -370,6 +386,15 @@ export default function App() {
       if (!selected.find(s => s.title === candidate.title)) {
         selected.push(candidate);
       }
+    }
+
+    // Store the selected playlist IDs to avoid showing them again soon
+    try {
+      const selectedIds = selected.map(p => p.spotify_id);
+      const newShownList = [...previouslyShown, ...selectedIds].slice(-15); // Keep last 15
+      sessionStorage.setItem('moodmixer_shown_playlists', JSON.stringify(newShownList));
+    } catch (e) {
+      // Ignore storage errors
     }
 
     return selected.map((p, idx) => ({
