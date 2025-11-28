@@ -151,7 +151,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
   useEffect(() => {
     const updateOrbit = () => {
       if (!isDragging && elementRef.current) {
-        const time = Date.now() * 0.0001;
+        const time = Date.now() * 0.0004; // Increased speed
         const angle = time + (index * (2 * Math.PI / total));
         const x = Math.cos(angle) * radiusRef.current;
         const y = Math.sin(angle) * radiusRef.current;
@@ -170,7 +170,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
 
     // Calculate current position from the element's transform or calculate it manually
     // Ideally we want to start dragging from where the orbit currently is
-    const time = Date.now() * 0.0001;
+    const time = Date.now() * 0.0004; // Match speed
     const angle = time + (index * (2 * Math.PI / total));
     const startX = Math.cos(angle) * radiusRef.current;
     const startY = Math.sin(angle) * radiusRef.current;
@@ -225,7 +225,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
-      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_8px_20px_-4px_rgba(0,0,0,0.3)] transition-all duration-300 ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.3),0_8px_25px_-4px_rgba(0,0,0,0.4)]'}`}
+      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition-[background-color,border-color,box-shadow] duration-300 ${isDragging ? 'z-50 scale-125 bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30'}`}
       style={{
         touchAction: 'none', // Critico per evitare lo scroll durante il drag
         left: '50%',
@@ -233,8 +233,11 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
         // Initial transform will be set by the effect immediately
       }}
     >
-      <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
-        <mood.icon className={`w-6 h-6 md:w-8 md:h-8 ${mood.color} filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
+      {/* Colored Glow/Shadow Layer */}
+      <div className={`absolute inset-0 rounded-full opacity-60 transition-opacity duration-300 ${mood.glow} pointer-events-none`}></div>
+
+      <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none relative z-10">
+        <mood.icon className={`w-6 h-6 md:w-8 md:h-8 text-white/90 filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]`} strokeWidth={1.5} fill={`url(#${mood.gradId})`} fillOpacity="0.4" />
         <span className={`absolute -bottom-8 text-[9px] font-mono tracking-widest text-white/80 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isDragging ? 'opacity-100' : ''}`}>{mood.label}</span>
       </div>
     </div>
