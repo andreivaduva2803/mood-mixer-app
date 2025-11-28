@@ -225,7 +225,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       onTouchStart={handlePointerDown}
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
-      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-sm bg-white/5 border border-white/10 cursor-grab active:cursor-grabbing shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/10' : 'z-20 hover:scale-110 hover:border-white/30 hover:bg-white/10'}`}
+      className={`absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_8px_20px_-4px_rgba(0,0,0,0.3)] transition-all duration-300 ${isDragging ? 'z-50 scale-125 ' + mood.glow + ' bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.3),0_8px_25px_-4px_rgba(0,0,0,0.4)]'}`}
       style={{
         touchAction: 'none', // Critico per evitare lo scroll durante il drag
         left: '50%',
