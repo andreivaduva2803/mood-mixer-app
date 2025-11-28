@@ -160,7 +160,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       lastTimeRef.current = now;
 
       if (!isDragging && elementRef.current) {
-        const speed = 0.4; // radians per second
+        const speed = 0.8; // radians per second
         angleRef.current += speed * dt;
 
         const x = Math.cos(angleRef.current) * radiusRef.current;
@@ -245,7 +245,7 @@ const DraggableMood = ({ mood, index, total, onDrop, containerRef }) => {
       className={`group absolute flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 
         rounded-full cursor-grab active:cursor-grabbing backdrop-blur-xl bg-white/10 
         border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]
-        transition-[background-color,border-color,box-shadow,transform] duration-300
+        transition-[background-color,border-color,box-shadow] duration-300
         ${isDragging ? 'z-50 scale-125 bg-white/20' : 'z-20 hover:scale-110 hover:bg-white/20 hover:border-white/30'}
       `}
       style={{
