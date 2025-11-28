@@ -364,15 +364,30 @@ export default function App() {
       // Ignore storage errors
     }
 
-    // Filter out previously shown playlists if we have enough alternatives
-    const unseenPool = pool.filter(p => !previouslyShown.includes(p.spotify_id));
-    const finalPool = unseenPool.length >= 3 ? unseenPool : pool;
+    console.log('🎵 Pool size:', pool.length);
+    console.log('📜 Previously shown:', previouslyShown);
 
-    // Enhanced Fisher-Yates shuffle with time-based seed for more randomness
+    // Filter out previously shown playlists
+    const unseenPool = pool.filter(p => !previouslyShown.includes(p.spotify_id));
+
+    console.log('👀 Unseen pool size:', unseenPool.length);
+
+    // Use unseen pool if we have at least 3, otherwise reset and use full pool
+    let finalPool;
+    if (unseenPool.length >= 3) {
+      finalPool = unseenPool;
+      console.log('✅ Using unseen pool');
+    } else {
+      // Not enough unseen playlists, clear history and use full pool
+      finalPool = pool;
+      previouslyShown = []; // Reset history
+      console.log('🔄 Resetting history, using full pool');
+    }
+
+    // Proper Fisher-Yates shuffle for true randomness
     const shuffled = [...finalPool];
-    const seed = Date.now() + Math.random() * 10000;
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor((Math.random() + (seed % (i + 1)) / 1000) % 1) * (i + 1);
+      const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
@@ -388,11 +403,14 @@ export default function App() {
       }
     }
 
+    console.log('🎯 Selected:', selected.map(p => p.title));
+
     // Store the selected playlist IDs to avoid showing them again soon
     try {
       const selectedIds = selected.map(p => p.spotify_id);
       const newShownList = [...previouslyShown, ...selectedIds].slice(-15); // Keep last 15
       sessionStorage.setItem('moodmixer_shown_playlists', JSON.stringify(newShownList));
+      console.log('💾 Saved to storage:', newShownList.length, 'playlists');
     } catch (e) {
       // Ignore storage errors
     }
