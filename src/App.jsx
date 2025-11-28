@@ -16,6 +16,7 @@ import {
   CloudFog
 } from 'lucide-react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { generatePlaylistWithGemini } from './services/aiService';
 
 // --- CONFIGURAZIONE ---
 
@@ -123,27 +124,7 @@ const FALLBACK_PLAYLISTS = [
   }
 ];
 
-async function callGemini(prompt) {
-  if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-    return null;
-  }
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      }
-    );
-    if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text;
-  } catch (error) {
-    console.error('Gemini API Error:', error);
-    return null;
-  }
-}
+
 
 // --- Componenti ---
 
@@ -427,53 +408,15 @@ export default function App() {
 
     // Try AI first if key exists
     if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE") {
-      const moodLabels = selectedMoods.map(m => m.label).join(', ');
-      const timestamp = Date.now();
-      const randomSeed = Math.floor(Math.random() * 10000);
+      const aiPlaylists = await generatePlaylistWithGemini(apiKey, selectedMoods);
 
-      const prompt = `You are an expert music curator with deep knowledge of Spotify's catalog. 
-
-User's mood selection: [${moodLabels}]
-Timestamp: ${timestamp}
-Variation seed: ${randomSeed}
-
-IMPORTANT INSTRUCTIONS:
-1. Generate 3 COMPLETELY DIFFERENT Spotify playlist recommendations that match these moods
-2. Each recommendation MUST be a REAL, EXISTING Spotify editorial playlist
-3. Use ONLY verified Spotify playlist IDs (format: 37i9dQZF1DX...)
-4. Ensure maximum variety - never repeat the same playlists
-5. Consider the mood combination to create a unique blend
-
-Output ONLY valid JSON in this exact format:
-{
-  "playlists": [
-    {
-      "title": "Playlist Name",
-      "desc": "Brief description matching the mood",
-      "analysis": "Why this fits the user's mood selection",
-      "spotify_id": "37i9dQZF1DX..."
-    }
-  ]
-}
-
-Do not include any markdown formatting or extra text, just the JSON.`;
-
-      const jsonString = await callGemini(prompt);
-      if (jsonString) {
-        try {
-          const cleanedJson = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
-          const data = JSON.parse(cleanedJson);
-          if (data.playlists && data.playlists.length === 3) {
-            setResults(data.playlists.map(p => ({
-              ...p,
-              url: `https://open.spotify.com/playlist/${p.spotify_id}`
-            })));
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          console.error("AI Parse Error, falling back to local", e);
-        }
+      if (aiPlaylists) {
+        setResults(aiPlaylists.map(p => ({
+          ...p,
+          url: `https://open.spotify.com/playlist/${p.spotify_id}`
+        })));
+        setLoading(false);
+        return;
       }
     }
 
